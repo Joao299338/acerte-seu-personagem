@@ -1,0 +1,2329 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<title>Dica Dojo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap">
+<style>
+/* Layout: coluna única, painéis escuros de borda fina, vermelho só onde há ação ou destaque. */
+:root {
+  --bg: #0b0b0c;
+  --paper: #141415;
+  --paper-2: #1b1b1d;
+  --ink: #ececec;
+  --muted: #8d8d92;
+  --line: #2b2b2e;
+  --accent: #c8202f;
+  --accent-hi: #e8505c;
+  --accent-ink: #ffffff;
+  --accent-deep: #2a0f13;
+  --f-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 22px 56px;
+}
+.screen { display: flex; flex-direction: column; gap: 16px; }
+.screen[hidden] { display: none; }
+
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.02em; margin: 0; line-height: 1.1; text-wrap: balance; }
+p { margin: 0; }
+
+/* Painéis */
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.pad { padding: 16px; }
+
+/* Botões */
+.btn {
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: pointer;
+  min-height: 48px;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.btn:hover { border-color: var(--accent); }
+.btn:active { background: var(--accent-deep); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
+.btn.primary:active { background: var(--accent); }
+.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+.btn[disabled]:hover { border-color: var(--line); }
+.btn.primary[disabled]:hover { background: var(--accent); border-color: var(--accent); }
+.btn.block { width: 100%; }
+:focus-visible { outline: 2px solid var(--accent-hi); outline-offset: 3px; }
+
+/* Marca */
+.brand { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.brand .mark { font-size: 14px; font-weight: 800; letter-spacing: 0.4em; color: var(--accent); }
+.brand h1 { font-size: clamp(40px, 12vw, 58px); }
+.brand h1 span { color: var(--accent); }
+.brand p { color: var(--muted); font-weight: 500; max-width: 46ch; }
+.brand .catalog { color: var(--ink); font-weight: 700; font-size: 14px; }
+.brand .catalog b { color: var(--accent-hi); }
+
+/* Seletor de anime */
+.picker-wrap { display: grid; gap: 8px; }
+.picker-label { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick { font: inherit; font-weight: 700; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; min-height: 40px; cursor: pointer; transition: border-color 0.12s ease, background 0.12s ease; }
+.pick:hover { border-color: var(--accent); }
+.pick.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* Cartões de modo */
+.modes { display: grid; gap: 12px; }
+.mode {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.mode:hover { border-color: var(--accent); background: var(--paper-2); }
+.mode .kanji { font-size: 44px; font-weight: 800; line-height: 1; color: var(--accent); text-align: center; }
+.mode .name { font-size: 20px; font-weight: 800; }
+.mode .blurb { color: var(--muted); font-size: 14px; font-weight: 500; margin-top: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 2px 10px; background: transparent; color: var(--muted);
+}
+.chip.hl { border-color: var(--accent); color: var(--accent-hi); }
+
+details.panel summary { cursor: pointer; font-weight: 700; padding: 14px 16px; }
+details.panel ol { margin: 0; padding: 0 16px 16px 36px; display: grid; gap: 8px; color: var(--muted); font-weight: 500; }
+
+/* Barra superior */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.back { font: inherit; font-weight: 700; background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px 0; min-height: 44px; }
+.back:hover { color: var(--ink); }
+.badge { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--accent); color: var(--accent-ink); padding: 4px 10px; border-radius: 4px; }
+.count { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Sorteio */
+.rule { color: var(--muted); font-weight: 500; }
+.rule b { color: var(--ink); }
+.draw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.role-card { border: 1px solid var(--line); background: var(--paper); border-radius: 6px; padding: 18px 12px; text-align: center; display: grid; gap: 6px; min-width: 0; }
+.role-card.give { border-color: var(--accent); background: var(--accent-deep); }
+.role-card .lbl { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.role-card.give .lbl { color: var(--accent-hi); }
+.role-card .nm { font-size: 26px; font-weight: 800; overflow-wrap: anywhere; min-height: 1.2em; }
+.role-card.rolling .nm { color: var(--muted); }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 700; font-size: 14px; }
+.draw-area { display: grid; gap: 16px; }
+.draw-area[hidden] { display: none; }
+
+/* Placar */
+.scores { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.score { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.score.on { border-color: var(--accent); background: var(--accent-deep); }
+.score .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.score .pts { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.score .role { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.score.on .role { color: var(--accent-hi); }
+
+/* Segredo */
+.secret-box { min-height: 150px; display: grid; align-content: center; justify-items: center; text-align: center; gap: 10px; padding: 16px; }
+.secret-box .placeholder { color: var(--muted); font-weight: 600; }
+.secret-box .reveal { display: none; }
+.secret-box.on .reveal { display: grid; gap: 8px; justify-items: center; }
+.secret-box.on .placeholder { display: none; }
+.secret-box.on { background: var(--accent-deep); border-color: var(--accent); }
+.secret-word { font-size: clamp(30px, 10vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; overflow-wrap: anywhere; }
+.secret-cat { font-weight: 800; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-hi); }
+.secret-tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-weight: 600; font-size: 14px; color: var(--muted); }
+
+/* Dicas */
+.hint-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hint-head .big { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hint-head .small { color: var(--muted); font-weight: 600; font-size: 14px; }
+.pips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 14px; }
+.pip { width: 14px; height: 14px; border: 1px solid var(--muted); border-radius: 50%; background: transparent; }
+.pip.on { background: var(--accent); border-color: var(--accent); }
+
+.row { display: flex; gap: 10px; }
+.row > * { min-width: 0; }
+.row .input { flex: 1; }
+.input {
+  font: inherit; font-weight: 600; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; width: 100%; min-height: 48px;
+}
+.input::placeholder { color: var(--muted); font-weight: 500; }
+.input:focus { border-color: var(--accent); }
+
+.feedback { min-height: 24px; font-weight: 700; }
+.feedback.bad { color: var(--accent-hi); }
+.feedback.info { color: var(--muted); }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.shake { animation: shake 0.25s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .shake { animation: none; }
+  .btn, .mode { transition: none; }
+}
+
+/* Faixas do Dojo */
+.belt { display: grid; gap: 6px; margin-top: 12px; max-width: 340px; }
+.belt .row { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+.belt .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--muted); background: var(--bc, var(--ink)); flex: none; }
+.belt .bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.belt .bar i { display: block; height: 100%; background: var(--accent); transition: width 0.3s ease; }
+.belt .sub { color: var(--muted); font-size: 13px; font-weight: 500; }
+.gain.extra { color: var(--accent-hi); font-weight: 700; font-size: 14px; margin-top: 4px; }
+.gain.extra:empty { display: none; }
+.title-line { font-weight: 700; color: var(--ink); }
+.title-line:empty { display: none; }
+/* Avatares */
+.av { display: inline-flex; vertical-align: -0.2em; margin-right: 0.4em; color: var(--accent-hi); }
+.av svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.avpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-top: 8px; }
+.avbtn { display: grid; place-items: center; min-height: 40px; padding: 0; color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: border-color 0.12s ease, color 0.12s ease; }
+.avbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.avbtn:hover { border-color: var(--accent); color: var(--ink); }
+.avbtn[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.avbtn:focus-visible { outline: 2px solid var(--accent-hi); outline-offset: 2px; }
+/* Fotos */
+.photo { display: block; width: 200px; max-width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-2); }
+
+
+/* Online */
+.divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.rule.small { font-size: 13px; }
+.code-input { text-transform: uppercase; letter-spacing: 0.3em; text-align: center; font-size: 18px; }
+.code-panel { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.code-box { font-size: clamp(44px, 16vw, 68px); font-weight: 800; letter-spacing: 0.18em; padding-left: 0.18em; color: var(--accent-hi); line-height: 1.1; }
+.vd-guess { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; overflow-wrap: anywhere; }
+#verdict-box .row .btn { flex: 1; }
+#hint-note { margin-top: 8px; min-height: 0; }
+#hint-note:empty { display: none; }
+
+/* Resultado */
+.result { text-align: center; padding: 22px 16px; display: grid; gap: 10px; justify-items: center; }
+.result .verdict { font-size: clamp(32px, 10vw, 46px); font-weight: 800; letter-spacing: -0.02em; }
+.result.win .verdict { color: var(--accent-hi); }
+.result.lose .verdict { color: var(--muted); }
+.result .answer { font-size: clamp(24px, 8vw, 34px); font-weight: 800; background: var(--accent); color: var(--accent-ink); padding: 4px 14px; border-radius: 4px; overflow-wrap: anywhere; }
+.result .cat { color: var(--muted); font-weight: 600; }
+.result .gain { font-weight: 700; }
+
+.final-title { font-size: clamp(32px, 10vw, 46px); }
+.rank { display: grid; gap: 12px; }
+.rank .score { padding: 14px; }
+.rank .score .pts { font-size: 30px; }
+</style>
+
+<div class="wrap">
+
+  <!-- Início -->
+  <section class="screen" id="s-home">
+    <header class="brand">
+      <div class="mark" aria-hidden="true">道場</div>
+      <h1>Dica <span>Dojo</span></h1>
+      <p>Um jogador vê a palavra secreta e dá dicas em voz alta. O outro tenta acertar. Quanto menos dicas, mais pontos.</p>
+      <p class="catalog" id="catalog"></p>
+      <div class="belt" id="belt"></div>
+    </header>
+
+    <div class="picker-wrap">
+      <div class="picker-label">Anime</div>
+      <div class="picker" id="picker" role="group" aria-label="Escolha o anime"></div>
+    </div>
+
+    <div class="modes" id="modes"></div>
+
+    <button class="btn block" type="button" id="go-online">Jogar online com um amigo</button>
+    <button class="btn block" type="button" id="snd-toggle" aria-pressed="true"></button>
+
+    <details class="panel">
+      <summary>Como jogar</summary>
+      <ol>
+        <li>Online: um jogador cria a sala e passa o código de 4 letras. O outro entra com o código e o site sorteia os papéis sozinho. Quem dá as dicas vê a palavra, fala as dicas em voz alta e diz se o chute está certo. Quem adivinha só escreve o personagem.</li>
+        <li>No mesmo aparelho: escolha o modo e digite o nome dos dois jogadores. O site sorteia quem dá as dicas e quem adivinha.</li>
+        <li>O narrador vê a palavra, fala uma dica em voz alta e toca em "Dei uma dica". As palavras sugeridas ajudam, mas ele pode usar as próprias.</li>
+        <li>Quem adivinha digita o chute. Os papéis se invertem a cada personagem.</li>
+        <li>Acertar vale 1 ponto por dica que ainda sobrava, mais 1.</li>
+        <li>Cada acerto seu sobe a sua faixa, de Branca até Preta. O progresso fica salvo neste aparelho.</li>
+      </ol>
+    </details>
+  </section>
+
+  <!-- Sorteio -->
+  <section class="screen" id="s-setup" hidden>
+    <div class="top">
+      <button class="back" type="button" id="setup-back">← Modos</button>
+      <span class="badge" id="setup-badge"></span>
+    </div>
+    <h2 id="setup-title"></h2>
+    <p class="rule" id="setup-rule"></p>
+
+    <div class="panel pad" style="display:grid; gap:14px;">
+      <div class="field">
+        <label for="p1">Jogador 1</label>
+        <input class="input" id="p1" maxlength="14" placeholder="Digite o nome" autocomplete="off">
+        <div class="avpick" id="av-1" role="group" aria-label="Avatar do jogador 1"></div>
+      </div>
+      <div class="field">
+        <label for="p2">Jogador 2</label>
+        <input class="input" id="p2" maxlength="14" placeholder="Digite o nome" autocomplete="off">
+        <div class="avpick" id="av-2" role="group" aria-label="Avatar do jogador 2"></div>
+      </div>
+      <button class="btn block" type="button" id="ai-toggle" aria-pressed="false" hidden>Sem ninguém por perto? Jogar contra a IA</button>
+      <p class="rule small" id="ai-note" hidden>A IA joga nos dois papéis: ela dá dicas de uma palavra para você adivinhar e tenta adivinhar as dicas que você der.</p>
+      <button class="btn primary block" type="button" id="draw">Sortear quem faz o quê</button>
+    </div>
+
+    <div class="draw-area" id="draw-area" hidden>
+      <div class="draw" aria-live="polite">
+        <div class="role-card give" id="card-give">
+          <span class="lbl">Dá as dicas</span>
+          <span class="nm" id="nm-give">—</span>
+        </div>
+        <div class="role-card" id="card-guess">
+          <span class="lbl">Adivinha</span>
+          <span class="nm" id="nm-guess">—</span>
+        </div>
+      </div>
+      <p class="rule">A cada personagem, os dois trocam de papel.</p>
+      <button class="btn primary block" type="button" id="start">Começar</button>
+    </div>
+  </section>
+
+  <!-- Online: entrar -->
+  <section class="screen" id="s-online" hidden>
+    <div class="top">
+      <button class="back" type="button" id="on-back">← Início</button>
+      <span class="badge">Online</span>
+    </div>
+    <h2>Jogar online</h2>
+    <p class="rule">Um jogador cria a sala e passa o código. O outro digita o código para entrar. Assim que os dois estão na sala, o site sorteia quem dá as dicas e quem adivinha.</p>
+    <div class="panel pad" style="display:grid; gap:14px;">
+      <div class="field">
+        <label for="on-name">Seu nome</label>
+        <input class="input" id="on-name" maxlength="14" placeholder="Digite o seu nome" autocomplete="off">
+        <div class="avpick" id="av-on" role="group" aria-label="Seu avatar"></div>
+      </div>
+      <div class="field">
+        <span class="picker-label" id="on-animes-label">Animes da sala (vale para quem cria)</span>
+        <div class="picker" id="on-picker" role="group" aria-labelledby="on-animes-label"></div>
+        <p class="rule small" id="on-picker-note"></p>
+      </div>
+      <button class="btn primary block" type="button" id="on-create">Criar sala</button>
+      <div class="divider"><span>ou entre com um código</span></div>
+      <div class="row">
+        <input class="input code-input" id="on-code" maxlength="4" placeholder="CÓDIGO" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código da sala">
+        <button class="btn" type="button" id="on-join">Entrar</button>
+      </div>
+      <div class="feedback bad" id="on-fb" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Online: sala -->
+  <section class="screen" id="s-lobby" hidden>
+    <div class="top">
+      <button class="back" type="button" id="lb-leave">← Sair da sala</button>
+      <span class="badge">Online</span>
+    </div>
+    <div class="panel pad code-panel">
+      <div class="picker-label">Código da sala</div>
+      <div class="code-box" id="lb-code">----</div>
+      <button class="btn" type="button" id="lb-copy">Copiar código</button>
+    </div>
+    <p class="rule" id="lb-status" aria-live="polite"></p>
+
+    <div class="panel pad" id="lb-cfg" style="display:grid; gap:14px;">
+      <div class="picker-wrap">
+        <div class="picker-label">Modo</div>
+        <div class="picker" id="lb-modes" role="group" aria-label="Modo da partida"></div>
+      </div>
+    </div>
+    <p class="rule" id="lb-cfg-text" hidden></p>
+
+    <div class="draw-area" id="lb-draw" hidden>
+      <div class="draw" aria-live="polite">
+        <div class="role-card give" id="lb-card-give">
+          <span class="lbl">Dá as dicas</span>
+          <span class="nm" id="lb-nm-give">—</span>
+        </div>
+        <div class="role-card" id="lb-card-guess">
+          <span class="lbl">Adivinha</span>
+          <span class="nm" id="lb-nm-guess">—</span>
+        </div>
+      </div>
+      <p class="rule">A cada personagem, os dois trocam de papel.</p>
+    </div>
+    <button class="btn block" type="button" id="lb-redraw" hidden>Sortear de novo</button>
+    <button class="btn primary block" type="button" id="lb-start" hidden>Começar</button>
+    <p class="rule" id="lb-wait" hidden></p>
+  </section>
+
+  <!-- Rodada -->
+  <section class="screen" id="s-round" hidden>
+    <div class="top">
+      <button class="back" type="button" id="round-quit">← Sair</button>
+      <span class="badge" id="r-mode"></span>
+      <span class="count" id="r-count"></span>
+    </div>
+
+    <div class="scores" id="r-scores"></div>
+
+    <p class="rule" id="r-roles"></p>
+
+    <div class="panel secret-box on" id="secret">
+      <div class="reveal">
+        <img class="photo" id="sec-img" alt="" hidden>
+        <span class="secret-cat" id="sec-cat"></span>
+        <span class="secret-word" id="sec-word"></span>
+        <ul class="secret-tips" id="sec-tips"></ul>
+      </div>
+    </div>
+
+    <div class="panel pad" id="hint-panel">
+      <div class="hint-head">
+        <span class="big" id="h-count"></span>
+        <span class="small" id="h-worth"></span>
+      </div>
+      <div class="pips" id="pips" aria-hidden="true"></div>
+      <div class="row" id="ai-hint-row" hidden>
+        <input class="input" id="ai-hint" maxlength="24" placeholder="Sua dica, uma palavra só" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Sua dica em uma palavra">
+      </div>
+      <button class="btn block" type="button" id="give">Dei uma dica</button>
+      <div class="feedback info" id="hint-note" aria-live="polite"></div>
+    </div>
+
+    <div class="panel pad" id="verdict-box" style="display:grid; gap:12px;" hidden>
+      <div class="picker-label">Chute de <span id="vd-who"></span></div>
+      <div class="vd-guess" id="vd-guess"></div>
+      <p class="rule small" id="vd-auto"></p>
+      <div class="row">
+        <button class="btn primary" type="button" id="vd-yes">Acertou</button>
+        <button class="btn" type="button" id="vd-no">Errou</button>
+      </div>
+    </div>
+
+    <form class="panel pad" id="guess-form" style="display:grid; gap:10px;">
+      <label for="guess" id="guess-label" style="font-weight:700;"></label>
+      <div class="row">
+        <input class="input" id="guess" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Digite o chute">
+        <button class="btn primary" type="submit">Chutar</button>
+      </div>
+      <div class="feedback info" id="fb" aria-live="polite"></div>
+    </form>
+
+    <button class="btn block" type="button" id="skip">Pular este personagem</button>
+  </section>
+
+  <!-- Resultado da rodada -->
+  <section class="screen" id="s-result" hidden>
+    <div class="top">
+      <span class="badge" id="res-mode"></span>
+      <span class="count" id="res-count"></span>
+    </div>
+    <div class="panel result" id="res-card">
+      <div class="verdict" id="res-verdict"></div>
+      <img class="photo" id="res-img" alt="" hidden>
+      <div class="cat">Era</div>
+      <div class="answer" id="res-answer"></div>
+      <div class="cat" id="res-cat"></div>
+      <div class="gain" id="res-gain"></div>
+      <div class="gain extra" id="res-extra"></div>
+    </div>
+    <div class="scores" id="res-scores"></div>
+    <button class="btn primary block" type="button" id="next"></button>
+  </section>
+
+  <!-- Fim -->
+  <section class="screen" id="s-end" hidden>
+    <h2 class="final-title" id="end-title"></h2>
+    <p class="rule" id="end-sub"></p>
+    <p class="rule title-line" id="end-rank-title"></p>
+    <div class="rank" id="end-rank"></div>
+    <p class="rule" id="end-tally"></p>
+    <button class="btn primary block" type="button" id="again">Jogar de novo</button>
+    <button class="btn block" type="button" id="end-home">Escolher outro modo</button>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  /* ---------- Banco de palavras ---------- */
+  /* Animes disponíveis. Só entram os que o dono do site pedir. */
+  function C(tipo) { return "Jujutsu Kaisen · " + tipo; }
+
+  var JJK_EASY = [
+    { n: "Yuji Itadori", c: C("personagem"), a: ["yuji", "itadori", "yuuji"], t: ["Estudante", "Dedo", "Rosa", "Força", "Hospedeiro"] },
+    { n: "Megumi Fushiguro", c: C("personagem"), a: ["megumi", "fushiguro"], t: ["Sombras", "Shikigami", "Cães", "Mahoraga", "Gojo"] },
+    { n: "Nobara Kugisaki", c: C("personagem"), a: ["nobara", "kugisaki"], t: ["Martelo", "Pregos", "Boneco", "Ressonância", "Interiorana"] },
+    { n: "Satoru Gojo", c: C("personagem"), a: ["gojo", "satoru"], t: ["Venda", "Infinito", "Olhos", "Professor", "Branco"] },
+    { n: "Ryomen Sukuna", c: C("personagem"), a: ["sukuna", "ryomen"], t: ["Rei", "Maldição", "Dedos", "Braços", "Tatuagens"] },
+    { n: "Kento Nanami", c: C("personagem"), a: ["nanami", "kento"], t: ["Assalariado", "Gravata", "Proporção", "Loiro", "Cutelo"] },
+    { n: "Maki Zenin", c: C("personagem"), a: ["maki", "zenin maki"], t: ["Gêmea", "Armas", "Óculos", "Katana", "Clã"] },
+    { n: "Toge Inumaki", c: C("personagem"), a: ["inumaki", "toge"], t: ["Fala", "Onigiri", "Garganta", "Colarinho", "Tosse"] },
+    { n: "Panda", c: C("personagem"), a: [], t: ["Urso", "Gorila", "Falante", "Mascote", "Núcleos"] },
+    { n: "Yuta Okkotsu", c: C("personagem"), a: ["yuta", "okkotsu"], t: ["Rika", "Katana", "Filme", "Anel", "Especial"] },
+    { n: "Suguru Geto", c: C("personagem"), a: ["geto", "suguru"], t: ["Maldições", "Absorção", "Coque", "Seita", "Amigo"] },
+    { n: "Mahito", c: C("personagem"), a: [], t: ["Maldição", "Alma", "Costuras", "Azul", "Transfiguração"] },
+    { n: "Dedo de Sukuna", c: C("item"), a: ["dedos de sukuna", "dedo", "dedos"], t: ["Objeto", "Vinte", "Engolido", "Mumificado", "Relíquia"] },
+    { n: "Expansão de Domínio", c: C("técnica"), a: ["dominio", "expansao de dominio", "domain expansion"], t: ["Barreira", "Técnica", "Inata", "Ataque", "Certeiro"] }
+  ];
+
+  var JJK_MEDIUM = [
+    { n: "Vazio Ilimitado", c: C("técnica"), a: ["unlimited void", "muryokusho", "dominio ilimitado", "void ilimitado"], t: ["Gojo", "Informação", "Paralisia", "Mente", "Domínio"] },
+    { n: "Santuário Malevolente", c: C("técnica"), a: ["malevolent shrine", "santuario maligno"], t: ["Sukuna", "Cortes", "Aberto", "Domínio", "Caveiras"] },
+    { n: "Energia Amaldiçoada", c: C("conceito"), a: ["cursed energy", "energia"], t: ["Emoções", "Negativa", "Feiticeiros", "Técnicas", "Combustível"] },
+    { n: "Black Flash", c: C("técnica"), a: ["kokusen", "flash negro", "raio negro", "relampago negro"], t: ["Faíscas", "Impacto", "Golpe", "Zona", "Dano"] },
+    { n: "Punho Divergente", c: C("técnica"), a: ["divergent fist"], t: ["Yuji", "Duplo", "Atraso", "Soco", "Golpe"] },
+    { n: "Mahoraga", c: C("shikigami"), a: ["general divino", "mahoraga general divino"], t: ["Roda", "Adaptação", "General", "Divino", "Espada"] },
+    { n: "Cães Divinos", c: C("shikigami"), a: ["caes divinos", "divine dogs", "cao divino"], t: ["Dupla", "Branco", "Preto", "Primeiro", "Shikigami"] },
+    { n: "Shikigami", c: C("conceito"), a: [], t: ["Espírito", "Invocação", "Servo", "Feiticeiros", "Familiar"] },
+    { n: "Jogo", c: C("personagem"), a: [], t: ["Vulcão", "Fogo", "Lava", "Cabeça", "Maldição"] },
+    { n: "Hanami", c: C("personagem"), a: [], t: ["Floresta", "Plantas", "Raízes", "Natureza", "Maldição"] },
+    { n: "Choso", c: C("personagem"), a: ["chosou"], t: ["Sangue", "Irmão", "Híbrido", "Perfurante", "Embrião"] },
+    { n: "Aoi Todo", c: C("personagem"), a: ["todo", "aoi"], t: ["Ídolo", "Palmas", "Troca", "Grandalhão", "Kyoto"] },
+    { n: "Toji Fushiguro", c: C("personagem"), a: ["toji"], t: ["Assassino", "Mercenário", "Cicatriz", "Pai", "Celestial"] },
+    { n: "Kenjaku", c: C("personagem"), a: [], t: ["Cérebro", "Costuras", "Cicatriz", "Planejador", "Corpos"] },
+    { n: "Rika Orimoto", c: C("personagem"), a: ["rika", "orimoto"], t: ["Espírito", "Anel", "Infância", "Promessa", "Maldição"] },
+    { n: "Incidente de Shibuya", c: C("arco"), a: ["shibuya", "shibuya incident", "arco shibuya"], t: ["Halloween", "Selamento", "Estação", "Caos", "Cidade"] },
+    { n: "Grau Especial", c: C("conceito"), a: ["special grade"], t: ["Classificação", "Topo", "Nível", "Poder", "Gojo"] },
+    { n: "Prisão Selada", c: C("item"), a: ["prison realm", "gokumonkyo", "cubo selado", "prisao"], t: ["Objeto", "Cubo", "Selamento", "Gojo", "Armadilha"] }
+  ];
+
+  var JJK_HARD = [
+    { n: "Dagon", c: C("personagem"), a: [], t: ["Oceano", "Tubarões", "Inundação", "Mar", "Maldição"] },
+    { n: "Mai Zenin", c: C("personagem"), a: ["mai"], t: ["Gêmea", "Construção", "Pistola", "Balas", "Irmã"] },
+    { n: "Noritoshi Kamo", c: C("personagem"), a: ["kamo", "noritoshi"], t: ["Sangue", "Clã", "Kyoto", "Flecha", "Herdeiro"] },
+    { n: "Mechamaru", c: C("personagem"), a: ["kokichi muta", "muta"], t: ["Robô", "Controle", "Metal", "Distância", "Kyoto"] },
+    { n: "Yuki Tsukumo", c: C("personagem"), a: ["yuki", "tsukumo"], t: ["Viajante", "Garuda", "Especial", "Mundo", "Loira"] },
+    { n: "Kinji Hakari", c: C("personagem"), a: ["hakari", "kinji"], t: ["Pachinko", "Jackpot", "Lutador", "Cassino", "Sorte"] },
+    { n: "Naoya Zenin", c: C("personagem"), a: ["naoya"], t: ["Projeção", "Velocidade", "Quadros", "Herdeiro", "Cinema"] },
+    { n: "Hajime Kashimo", c: C("personagem"), a: ["kashimo"], t: ["Eletricidade", "Raios", "Antigo", "Lutador", "Extermínio"] },
+    { n: "Hiromi Higuruma", c: C("personagem"), a: ["higuruma", "hiromi"], t: ["Advogado", "Tribunal", "Juiz", "Martelo", "Veredito"] },
+    { n: "Wasuke Itadori", c: C("personagem"), a: ["wasuke"], t: ["Avô", "Hospital", "Neto", "Idoso", "Pedido"] },
+    { n: "Masamichi Yaga", c: C("personagem"), a: ["yaga"], t: ["Diretor", "Bonecos", "Escola", "Chapéu", "Tóquio"] },
+    { n: "Kiyotaka Ijichi", c: C("personagem"), a: ["ijichi"], t: ["Assistente", "Carro", "Suporte", "Óculos", "Motorista"] },
+    { n: "Junpei Yoshino", c: C("personagem"), a: ["junpei", "yoshino"], t: ["Garoto", "Medusa", "Mahito", "Cinema", "Manipulado"] },
+    { n: "Ryu Ishigori", c: C("personagem"), a: ["ishigori", "ryu"], t: ["Granito", "Antigo", "Lutador", "Pedra", "Poder"] },
+    { n: "Uraume", c: C("personagem"), a: [], t: ["Gelo", "Servo", "Máscara", "Sukuna", "Leal"] },
+    { n: "Escola de Jujutsu de Tóquio", c: C("local"), a: ["tokyo jujutsu high", "escola de jujutsu", "escola", "escola de toquio"], t: ["Colégio", "Alunos", "Yaga", "Estudantes", "Feiticeiros"] },
+    { n: "Jogo do Extermínio", c: C("arco"), a: ["culling game", "culling games", "jogos do exterminio"], t: ["Colônias", "Competição", "Sobrevivência", "Regras", "Pontos"] },
+    { n: "Torneio de Kyoto", c: C("arco"), a: ["torneio de intercambio", "evento de intercambio", "goodwill event", "intercambio", "torneio de toquio e kyoto"], t: ["Escolas", "Disputa", "Times", "Evento", "Rivais"] }
+  ];
+
+  function J(tipo) { return "JoJo · " + tipo; }
+
+  var JOJO_EASY = [
+    { n: "Jotaro Kujo", c: J("personagem"), a: ["jotaro", "jotaro kujo"], t: ["Casaco", "Ora", "Impassível", "Estudante", "Egito"] },
+    { n: "Dio Brando", c: J("personagem"), a: ["dio", "dio brando"], t: ["Vampiro", "Tempo", "Loiro", "Egito", "Rival"] },
+    { n: "Jonathan Joestar", c: J("personagem"), a: ["jonathan", "jonathan joestar"], t: ["Hamon", "Cavalheiro", "Inglês", "Primeiro", "Bondoso"] },
+    { n: "Joseph Joestar", c: J("personagem"), a: ["joseph", "joseph joestar"], t: ["Truques", "Neto", "Esperto", "Hamon", "Avô"] },
+    { n: "Giorno Giovanna", c: J("personagem"), a: ["giorno", "giorno giovanna"], t: ["Gangster", "Italiano", "Vida", "Tranças", "Sonho"] },
+    { n: "Josuke Higashikata", c: J("personagem"), a: ["josuke", "josuke higashikata"], t: ["Penteado", "Cura", "Colegial", "Morioh", "Quarta"] },
+    { n: "Jolyne Cujoh", c: J("personagem"), a: ["jolyne", "jolyne kujo", "jolyne cujoh"], t: ["Prisão", "Fios", "Filha", "Presa", "Sexta"] },
+    { n: "Star Platinum", c: J("Stand"), a: [], t: ["Jotaro", "Ora", "Soco", "Parar", "Precisão"] },
+    { n: "The World", c: J("Stand"), a: ["za warudo", "o mundo"], t: ["Dio", "Tempo", "Muda", "Parar", "Amarelo"] },
+    { n: "Stand", c: J("conceito"), a: ["stands"], t: ["Espírito", "Invisível", "Habilidade", "Usuários", "Duplo"] },
+    { n: "Hamon", c: J("técnica"), a: ["ripple", "onda"], t: ["Respiração", "Energia", "Vampiros", "Sol", "Treino"] },
+    { n: "Máscara de Pedra", c: J("item"), a: ["stone mask", "mascara"], t: ["Vampiros", "Espinhos", "Asteca", "Dio", "Transformação"] },
+    { n: "Noriaki Kakyoin", c: J("personagem"), a: ["kakyoin", "noriaki"], t: ["Cerejas", "Esmeralda", "Aliado", "Ruivo", "Colegial"] },
+    { n: "Jean Pierre Polnareff", c: J("personagem"), a: ["polnareff", "jean pierre"], t: ["Francês", "Espadachim", "Irmã", "Vingança", "Cabelo"] }
+  ];
+
+  var JOJO_MEDIUM = [
+    { n: "Killer Queen", c: J("Stand"), a: [], t: ["Bomba", "Explosão", "Kira", "Morioh", "Gato"] },
+    { n: "Yoshikage Kira", c: J("personagem"), a: ["kira", "yoshikage"], t: ["Mãos", "Assassino", "Escritório", "Gravata", "Tranquilidade"] },
+    { n: "Gold Experience Requiem", c: J("Stand"), a: ["ger", "requiem", "gold experience requiem"], t: ["Evolução", "Giorno", "Zero", "Reverter", "Dourado"] },
+    { n: "Crazy Diamond", c: J("Stand"), a: [], t: ["Josuke", "Restaura", "Dora", "Consertar", "Rosa"] },
+    { n: "Robert E. O. Speedwagon", c: J("personagem"), a: ["speedwagon", "robert speedwagon"], t: ["Bandido", "Fundação", "Aliado", "Chapéu", "Inglês"] },
+    { n: "Caesar Zeppeli", c: J("personagem"), a: ["caesar", "cesar zeppeli", "cesar"], t: ["Bolhas", "Hamon", "Italiano", "Amigo", "Lenço"] },
+    { n: "Homens-Pilar", c: J("conceito"), a: ["pillar men", "homens pilar", "pillarmen", "homem pilar"], t: ["Raça", "Ancestrais", "Devoradores", "Kars", "Antiga"] },
+    { n: "Kars", c: J("personagem"), a: [], t: ["Líder", "Supremo", "Lâminas", "Asas", "Evolução"] },
+    { n: "Wamuu", c: J("personagem"), a: [], t: ["Vento", "Tornado", "Guerreiro", "Orgulhoso", "Tempestade"] },
+    { n: "Diavolo", c: J("personagem"), a: [], t: ["Chefe", "Passione", "Identidade", "Segredo", "Rosa"] },
+    { n: "King Crimson", c: J("Stand"), a: [], t: ["Apagar", "Tempo", "Segundos", "Diavolo", "Futuro"] },
+    { n: "Bruno Bucciarati", c: J("personagem"), a: ["bucciarati", "bruno"], t: ["Zíperes", "Líder", "Gangster", "Honra", "Equipe"] },
+    { n: "Guido Mista", c: J("personagem"), a: ["mista", "guido"], t: ["Atirador", "Pistola", "Quatro", "Superstição", "Azar"] },
+    { n: "Rohan Kishibe", c: J("personagem"), a: ["rohan", "kishibe"], t: ["Mangaká", "Livros", "Artista", "Desenho", "Excêntrico"] },
+    { n: "Enrico Pucci", c: J("personagem"), a: ["pucci", "enrico"], t: ["Padre", "Paraíso", "Discos", "Gravidade", "Religioso"] },
+    { n: "Gyro Zeppeli", c: J("personagem"), a: ["gyro"], t: ["Esferas", "Rotação", "Cavaleiro", "Italiano", "Aço"] },
+    { n: "Johnny Joestar", c: J("personagem"), a: ["johnny"], t: ["Jóquei", "Unhas", "Cadeira", "Cavalo", "Rotação"] },
+    { n: "Steel Ball Run", c: J("arco"), a: ["sbr", "parte 7"], t: ["Corrida", "Cavalos", "América", "Sétima", "Prêmio"] }
+  ];
+
+  var JOJO_HARD = [
+    { n: "Esidisi", c: J("personagem"), a: [], t: ["Calor", "Sangue", "Pilar", "Fervente", "Vermelho"] },
+    { n: "Santana", c: J("personagem"), a: [], t: ["Pilar", "Primeiro", "México", "Joseph", "Ruínas"] },
+    { n: "Lisa Lisa", c: J("personagem"), a: ["elizabeth joestar"], t: ["Mestra", "Hamon", "Mãe", "Joseph", "Misteriosa"] },
+    { n: "Muhammad Avdol", c: J("personagem"), a: ["avdol", "muhammad"], t: ["Fogo", "Egito", "Adivinhação", "Aliado", "Mago"] },
+    { n: "Iggy", c: J("personagem"), a: [], t: ["Cachorro", "Areia", "Café", "Chiclete", "Terrier"] },
+    { n: "Hermit Purple", c: J("Stand"), a: [], t: ["Joseph", "Espinhos", "Fotos", "Videira", "Rastreio"] },
+    { n: "Holy Kujo", c: J("personagem"), a: ["holy", "holy joestar"], t: ["Mãe", "Jotaro", "Doença", "Vinhas", "Bondosa"] },
+    { n: "Hierophant Green", c: J("Stand"), a: [], t: ["Kakyoin", "Esmeralda", "Tentáculos", "Barreira", "Cordas"] },
+    { n: "Silver Chariot", c: J("Stand"), a: [], t: ["Polnareff", "Espada", "Armadura", "Cavaleiro", "Velocidade"] },
+    { n: "Sticky Fingers", c: J("Stand"), a: [], t: ["Bucciarati", "Zíperes", "Abrir", "Cortar", "Buracos"] },
+    { n: "Sex Pistols", c: J("Stand"), a: [], t: ["Mista", "Balas", "Seis", "Pequenos", "Revólver"] },
+    { n: "Heaven's Door", c: J("Stand"), a: ["heavens door"], t: ["Rohan", "Livros", "Páginas", "Ler", "Ordens"] },
+    { n: "Tusk", c: J("Stand"), a: [], t: ["Johnny", "Unhas", "Rotação", "Evolução", "Buraco"] },
+    { n: "Funny Valentine", c: J("personagem"), a: ["valentine"], t: ["Presidente", "Dimensões", "Patriota", "América", "Vilão"] },
+    { n: "D4C", c: J("Stand"), a: ["dirty deeds done dirt cheap"], t: ["Dimensões", "Universos", "Valentine", "Paralelos", "Presidente"] },
+    { n: "Whitesnake", c: J("Stand"), a: ["white snake"], t: ["Pucci", "Discos", "Memória", "Roubo", "Ácido"] },
+    { n: "Made in Heaven", c: J("Stand"), a: [], t: ["Pucci", "Tempo", "Aceleração", "Universo", "Recomeço"] },
+    { n: "Stone Ocean", c: J("arco"), a: ["parte 6", "ocean de pedra"], t: ["Prisão", "Jolyne", "Sexta", "Feminina", "Segurança"] }
+  ];
+
+  function N(tipo) { return "Naruto · " + tipo; }
+
+  var NARUTO_EASY = [
+    { n: "Naruto Uzumaki", c: N("personagem"), a: ["naruto", "uzumaki"], t: ["Hokage", "Raposa", "Laranja", "Loiro", "Bigodes"] },
+    { n: "Sasuke Uchiha", c: N("personagem"), a: ["sasuke", "uchiha"], t: ["Vingança", "Rival", "Clã", "Relâmpago", "Moreno"] },
+    { n: "Sakura Haruno", c: N("personagem"), a: ["sakura", "haruno"], t: ["Rosa", "Médica", "Força", "Soco", "Testa"] },
+    { n: "Kakashi Hatake", c: N("personagem"), a: ["kakashi", "hatake"], t: ["Máscara", "Livro", "Professor", "Copiador", "Prateado"] },
+    { n: "Itachi Uchiha", c: N("personagem"), a: ["itachi"], t: ["Massacre", "Irmão", "Corvos", "Akatsuki", "Prodígio"] },
+    { n: "Jiraiya", c: N("personagem"), a: ["jiraya"], t: ["Sapos", "Sannin", "Eremita", "Escritor", "Mestre"] },
+    { n: "Hinata Hyuga", c: N("personagem"), a: ["hinata", "hyuga"], t: ["Tímida", "Olhos", "Gentil", "Apaixonada", "Herdeira"] },
+    { n: "Gaara", c: N("personagem"), a: [], t: ["Areia", "Tatuagem", "Kazekage", "Cabaça", "Ruivo"] },
+    { n: "Rock Lee", c: N("personagem"), a: ["lee"], t: ["Taijutsu", "Verde", "Sobrancelhas", "Portões", "Esforço"] },
+    { n: "Minato Namikaze", c: N("personagem"), a: ["minato", "yondaime", "quarto hokage"], t: ["Quarto", "Relâmpago", "Amarelo", "Pai", "Kunai"] },
+    { n: "Rasengan", c: N("técnica"), a: [], t: ["Esfera", "Giratória", "Chakra", "Naruto", "Minato"] },
+    { n: "Chidori", c: N("técnica"), a: [], t: ["Relâmpago", "Mão", "Pássaros", "Kakashi", "Sasuke"] },
+    { n: "Kurama", c: N("personagem"), a: ["kyuubi", "kyubi", "raposa de nove caudas", "nove caudas"], t: ["Raposa", "Caudas", "Selado", "Chakra", "Laranja"] },
+    { n: "Jutsu Clone das Sombras", c: N("técnica"), a: ["kage bunshin", "clone das sombras", "clones das sombras", "shadow clone", "kage bunshin no jutsu"], t: ["Cópias", "Fumaça", "Multiplicar", "Proibido", "Naruto"] }
+  ];
+
+  var NARUTO_MEDIUM = [
+    { n: "Sharingan", c: N("técnica"), a: [], t: ["Olhos", "Vermelho", "Tomoe", "Uchiha", "Cópia"] },
+    { n: "Byakugan", c: N("técnica"), a: [], t: ["Olhos", "Branco", "Hyuga", "Visão", "Veias"] },
+    { n: "Rinnegan", c: N("técnica"), a: [], t: ["Olhos", "Ondas", "Caminhos", "Pain", "Lendário"] },
+    { n: "Akatsuki", c: N("organização"), a: [], t: ["Organização", "Nuvens", "Capas", "Criminosos", "Anéis"] },
+    { n: "Orochimaru", c: N("personagem"), a: [], t: ["Cobras", "Sannin", "Experimentos", "Pálido", "Imortalidade"] },
+    { n: "Tsunade", c: N("personagem"), a: [], t: ["Hokage", "Cura", "Força", "Sannin", "Apostas"] },
+    { n: "Madara Uchiha", c: N("personagem"), a: ["madara"], t: ["Lendário", "Fundador", "Guerra", "Rinnegan", "Hashirama"] },
+    { n: "Hashirama Senju", c: N("personagem"), a: ["hashirama", "primeiro hokage"], t: ["Primeiro", "Madeira", "Hokage", "Fundador", "Amigo"] },
+    { n: "Pain", c: N("personagem"), a: ["nagato", "yahiko"], t: ["Caminhos", "Rinnegan", "Akatsuki", "Piercings", "Invasão"] },
+    { n: "Kisame Hoshigaki", c: N("personagem"), a: ["kisame", "hoshigaki"], t: ["Tubarão", "Espada", "Akatsuki", "Azul", "Névoa"] },
+    { n: "Deidara", c: N("personagem"), a: [], t: ["Explosões", "Arte", "Argila", "Loiro", "Akatsuki"] },
+    { n: "Shikamaru Nara", c: N("personagem"), a: ["shikamaru", "nara"], t: ["Estrategista", "Sombras", "Preguiça", "Gênio", "Cervos"] },
+    { n: "Might Guy", c: N("personagem"), a: ["guy", "gai", "might gai", "maito gai"], t: ["Taijutsu", "Professor", "Verde", "Juventude", "Besta"] },
+    { n: "Obito Uchiha", c: N("personagem"), a: ["obito", "tobi"], t: ["Máscara", "Kamui", "Espaço", "Amigo", "Óculos"] },
+    { n: "Bijuu", c: N("conceito"), a: ["bijuus", "biju", "bijus", "tailed beast", "bestas com cauda"], t: ["Bestas", "Caudas", "Monstros", "Nove", "Selados"] },
+    { n: "Chakra", c: N("conceito"), a: [], t: ["Energia", "Selos", "Ninja", "Técnicas", "Mente"] },
+    { n: "Hokage", c: N("conceito"), a: [], t: ["Líder", "Chapéu", "Vila", "Título", "Sonho"] },
+    { n: "Exames Chunin", c: N("arco"), a: ["exame chunin", "exame de chunin", "exames de chunin", "chunin exams"], t: ["Provas", "Floresta", "Torneio", "Promoção", "Morte"] }
+  ];
+
+  var NARUTO_HARD = [
+    { n: "Kushina Uzumaki", c: N("personagem"), a: ["kushina"], t: ["Ruiva", "Mãe", "Selamento", "Raposa", "Teimosa"] },
+    { n: "Neji Hyuga", c: N("personagem"), a: ["neji"], t: ["Destino", "Gênio", "Rotação", "Olhos", "Primo"] },
+    { n: "Tenten", c: N("personagem"), a: ["ten ten"], t: ["Armas", "Pergaminhos", "Pontaria", "Coques", "Arremesso"] },
+    { n: "Kiba Inuzuka", c: N("personagem"), a: ["kiba", "inuzuka"], t: ["Cachorro", "Akamaru", "Faro", "Presas", "Selvagem"] },
+    { n: "Shino Aburame", c: N("personagem"), a: ["shino", "aburame"], t: ["Insetos", "Óculos", "Casaco", "Silencioso", "Besouros"] },
+    { n: "Choji Akimichi", c: N("personagem"), a: ["choji", "akimichi"], t: ["Comida", "Batatas", "Robusto", "Expansão", "Amigo"] },
+    { n: "Ino Yamanaka", c: N("personagem"), a: ["ino", "yamanaka"], t: ["Loira", "Mente", "Flores", "Rival", "Troca"] },
+    { n: "Temari", c: N("personagem"), a: [], t: ["Leque", "Vento", "Areia", "Irmã", "Estrategista"] },
+    { n: "Kankuro", c: N("personagem"), a: [], t: ["Marionetes", "Maquiagem", "Areia", "Irmão", "Veneno"] },
+    { n: "Zabuza Momochi", c: N("personagem"), a: ["zabuza", "momochi"], t: ["Espada", "Névoa", "Demônio", "Bandagem", "Ponte"] },
+    { n: "Haku", c: N("personagem"), a: [], t: ["Gelo", "Espelhos", "Máscara", "Zabuza", "Agulhas"] },
+    { n: "Hiruzen Sarutobi", c: N("personagem"), a: ["hiruzen", "sarutobi", "terceiro hokage", "sandaime"], t: ["Terceiro", "Professor", "Macaco", "Cachimbo", "Idoso"] },
+    { n: "Konan", c: N("personagem"), a: [], t: ["Papel", "Anjo", "Origami", "Akatsuki", "Azul"] },
+    { n: "Sasori", c: N("personagem"), a: [], t: ["Marionetes", "Veneno", "Akatsuki", "Arte", "Eternidade"] },
+    { n: "Hidan", c: N("personagem"), a: [], t: ["Imortal", "Ritual", "Foice", "Religião", "Akatsuki"] },
+    { n: "Kabuto Yakushi", c: N("personagem"), a: ["kabuto"], t: ["Médico", "Espião", "Óculos", "Orochimaru", "Orfanato"] },
+    { n: "Vila da Folha", c: N("local"), a: ["konoha", "vila oculta da folha", "konohagakure"], t: ["Ninjas", "Hokage", "Rostos", "Montanha", "Escondida"] },
+    { n: "Vale do Fim", c: N("local"), a: ["valley of the end", "vale do fim"], t: ["Batalha", "Estátuas", "Cachoeira", "Rivais", "Despedida"] }
+  ];
+
+  function D(tipo) { return "Dragon Ball · " + tipo; }
+
+  var DB_EASY = [
+    { n: "Goku", c: D("personagem"), a: ["son goku", "kakaroto", "kakarotto"], t: ["Saiyajin", "Protagonista", "Nuvem", "Laranja", "Cauda"] },
+    { n: "Vegeta", c: D("personagem"), a: ["principe vegeta", "principe dos saiyajins"], t: ["Príncipe", "Orgulho", "Saiyajin", "Rival", "Galick"] },
+    { n: "Gohan", c: D("personagem"), a: ["son gohan"], t: ["Filho", "Estudante", "Herói", "Óculos", "Saiyaman"] },
+    { n: "Piccolo", c: D("personagem"), a: ["picolo"], t: ["Verde", "Capa", "Antenas", "Mentor", "Turbante"] },
+    { n: "Kuririn", c: D("personagem"), a: ["krillin", "kurilin"], t: ["Careca", "Pequeno", "Amigo", "Humano", "Disco"] },
+    { n: "Trunks", c: D("personagem"), a: [], t: ["Espada", "Futuro", "Lilás", "Viajante", "Filho"] },
+    { n: "Freeza", c: D("personagem"), a: ["frieza", "freezer"], t: ["Imperador", "Tirano", "Planetas", "Transformações", "Espaço"] },
+    { n: "Cell", c: D("personagem"), a: ["celula"], t: ["Absorção", "Perfeito", "Cauda", "Manchas", "Futuro"] },
+    { n: "Majin Boo", c: D("personagem"), a: ["boo", "majin buu", "buu"], t: ["Rosa", "Doces", "Chocolate", "Absorção", "Barriga"] },
+    { n: "Bulma", c: D("personagem"), a: [], t: ["Cientista", "Radar", "Azul", "Inventora", "Cápsulas"] },
+    { n: "Mestre Kame", c: D("personagem"), a: ["kame", "kame sennin", "mestre das tartarugas", "mestre dos magos"], t: ["Tartaruga", "Óculos", "Ilha", "Velho", "Barba"] },
+    { n: "Kamehameha", c: D("técnica"), a: ["kame hame ha"], t: ["Onda", "Azul", "Mãos", "Energia", "Goku"] },
+    { n: "Esferas do Dragão", c: D("item"), a: ["esfera do dragao", "dragon balls", "esferas do dragao", "dragon ball"], t: ["Sete", "Desejo", "Radar", "Estrelas", "Invocar"] },
+    { n: "Super Saiyajin", c: D("transformação"), a: ["super sayajin", "ssj", "super saiyan", "ssj1"], t: ["Dourado", "Cabelo", "Transformação", "Raiva", "Lendário"] }
+  ];
+
+  var DB_MEDIUM = [
+    { n: "Genki Dama", c: D("técnica"), a: ["spirit bomb", "genkidama", "genki dama"], t: ["Energia", "Esfera", "Todos", "Gigante", "Emprestar"] },
+    { n: "Shenlong", c: D("personagem"), a: ["shenron", "dragao shenlong"], t: ["Desejos", "Verde", "Gigante", "Serpente", "Invocado"] },
+    { n: "Kaioken", c: D("técnica"), a: ["kaio ken", "kaioken x10", "kaio-ken"], t: ["Multiplicação", "Vermelho", "Aura", "Goku", "Corpo"] },
+    { n: "Senhor Kaioh", c: D("personagem"), a: ["kaioh", "kaio", "senhor kaio", "rei kaioh", "kaioh do norte"], t: ["Piadas", "Planeta", "Macaco", "Gafanhoto", "Antenas"] },
+    { n: "Torneio do Poder", c: D("arco"), a: ["tournament of power", "torneio de poder"], t: ["Universos", "Eliminação", "Arena", "Times", "Apagar"] },
+    { n: "Goten", c: D("personagem"), a: ["son goten"], t: ["Filho", "Pequeno", "Fusão", "Irmão", "Criança"] },
+    { n: "Nuvem Voadora", c: D("item"), a: ["nuvem kinton", "kinto'un", "nuvem"], t: ["Amarela", "Pura", "Goku", "Transporte", "Coração"] },
+    { n: "Bastão Mágico", c: D("item"), a: ["nyoibo", "bastao magico", "bastao"], t: ["Goku", "Cresce", "Vermelho", "Arma", "Extensível"] },
+    { n: "Namekuseijin", c: D("raça"), a: ["namekusei", "namekuseijins", "namekiano", "namekuseijin"], t: ["Raça", "Verde", "Antenas", "Regeneração", "Dragão"] },
+    { n: "Saiyajin", c: D("raça"), a: ["sayajin", "saiyan", "saiyajins"], t: ["Raça", "Cauda", "Macaco", "Guerreiros", "Lua"] },
+    { n: "Gogeta", c: D("fusão"), a: [], t: ["Fusão", "Goku", "Vegeta", "Dança", "Poderoso"] },
+    { n: "Vegetto", c: D("fusão"), a: ["vegito", "vegetto"], t: ["Fusão", "Brincos", "Potara", "Goku", "Vegeta"] },
+    { n: "Majin Vegeta", c: D("transformação"), a: [], t: ["Babidi", "Controle", "Marca", "Orgulho", "Sacrifício"] },
+    { n: "Androide 18", c: D("personagem"), a: ["a18", "c18", "androide dezoito", "18"], t: ["Loira", "Irmã", "Esposa", "Infinita", "Gêmea"] },
+    { n: "Ten Shin Han", c: D("personagem"), a: ["tenshinhan", "tien", "tenshin han", "ten chin han"], t: ["Careca", "Terceiro", "Olho", "Aliado", "Garça"] },
+    { n: "Yamcha", c: D("personagem"), a: ["iamcha"], t: ["Lobo", "Cicatriz", "Bandido", "Beisebol", "Fraco"] },
+    { n: "Capitão Ginyu", c: D("personagem"), a: ["ginyu", "ginew", "ginyu"], t: ["Pose", "Troca", "Corpos", "Sapo", "Líder"] },
+    { n: "Saga de Cell", c: D("arco"), a: ["cell saga", "arco de cell"], t: ["Androides", "Futuro", "Perfeito", "Jogos", "Gohan"] }
+  ];
+
+  var DB_HARD = [
+    { n: "Raditz", c: D("personagem"), a: [], t: ["Irmão", "Cabelo", "Longo", "Cauda", "Invasor"] },
+    { n: "Nappa", c: D("personagem"), a: [], t: ["Careca", "Grandalhão", "Saiyajin", "Brutal", "Parceiro"] },
+    { n: "Cooler", c: D("personagem"), a: [], t: ["Irmão", "Máscara", "Freeza", "Elite", "Transformação"] },
+    { n: "Garlic Jr.", c: D("personagem"), a: ["alho jr", "garlic jr", "garlic junior", "garlic"], t: ["Vilão", "Imortalidade", "Esferas", "Gohan", "Baixinho"] },
+    { n: "Rei Piccolo", c: D("personagem"), a: ["king piccolo", "piccolo daimaoh", "daimaoh"], t: ["Vilão", "Demônio", "Ovo", "Pai", "Antigo"] },
+    { n: "Babidi", c: D("personagem"), a: [], t: ["Mago", "Pequeno", "Controle", "Boo", "Nave"] },
+    { n: "Dabura", c: D("personagem"), a: ["dabra"], t: ["Demônio", "Inferno", "Cuspe", "Pedra", "Boca"] },
+    { n: "Androide 17", c: D("personagem"), a: ["a17", "c17", "17"], t: ["Moreno", "Irmão", "Gêmeo", "Jaqueta", "Preto"] },
+    { n: "Dr. Gero", c: D("personagem"), a: ["dr gero", "doutor gero", "gero", "doutor gelo"], t: ["Cientista", "Velho", "Bigode", "Laboratório", "Vingança"] },
+    { n: "Tartaruga Gigante", c: D("personagem"), a: ["umigame", "tartaruga"], t: ["Mar", "Casco", "Ilha", "Amiga", "Resgate"] },
+    { n: "Chi-Chi", c: D("personagem"), a: ["chichi", "chi chi"], t: ["Esposa", "Mãe", "Rígida", "Estudos", "Wok"] },
+    { n: "Mr. Satan", c: D("personagem"), a: ["mr satan", "hercule", "mister satan", "sr satan", "sr. satan"], t: ["Campeão", "Mundo", "Afro", "Fraude", "Herói"] },
+    { n: "Beerus", c: D("personagem"), a: ["bills", "lorde beerus", "deus da destruicao"], t: ["Gato", "Deus", "Sono", "Comida", "Planetas"] },
+    { n: "Whis", c: D("personagem"), a: ["wiss"], t: ["Anjo", "Mestre", "Cajado", "Azul", "Treinador"] },
+    { n: "Zeno", c: D("personagem"), a: ["zeno sama", "zenosama", "grande sacerdote", "rei de tudo"], t: ["Pequeno", "Apagar", "Universos", "Supremo", "Infantil"] },
+    { n: "Jiren", c: D("personagem"), a: [], t: ["Cinza", "Orgulho", "Universo", "Poder", "Olhar"] },
+    { n: "Planeta Namekusei", c: D("local"), a: ["planeta namekusei", "namekusei", "planeta namek", "namek"], t: ["Verde", "Água", "Dende", "Esferas", "Freeza"] },
+    { n: "Sala do Tempo", c: D("local"), a: ["sala do espirito e do tempo", "hyperbolic time chamber", "sala do espirito e tempo"], t: ["Treino", "Dia", "Branco", "Vazio", "Gohan"] }
+  ];
+
+  function B(tipo) { return "Bleach · " + tipo; }
+
+  var BL_EASY = [
+    { n: "Ichigo Kurosaki", c: B("personagem"), a: ["ichigo", "kurosaki"], t: ["Laranja", "Substituto", "Espada", "Protagonista", "Hollow"] },
+    { n: "Rukia Kuchiki", c: B("personagem"), a: ["rukia", "kuchiki"], t: ["Gelo", "Pequena", "Nobre", "Irmã", "Coelho"] },
+    { n: "Renji Abarai", c: B("personagem"), a: ["renji", "abarai"], t: ["Tatuagens", "Vermelho", "Serpente", "Amigo", "Tenente"] },
+    { n: "Byakuya Kuchiki", c: B("personagem"), a: ["byakuya"], t: ["Nobre", "Pétalas", "Capitão", "Frio", "Orgulhoso"] },
+    { n: "Orihime Inoue", c: B("personagem"), a: ["orihime", "inoue"], t: ["Grampos", "Cura", "Escudos", "Amiga", "Ruiva"] },
+    { n: "Uryu Ishida", c: B("personagem"), a: ["uryu", "ishida"], t: ["Arco", "Óculos", "Costura", "Orgulhoso", "Flechas"] },
+    { n: "Chad", c: B("personagem"), a: ["yasutora sado", "sado", "chad sado"], t: ["Gigante", "Braço", "Força", "Silencioso", "Escudo"] },
+    { n: "Kisuke Urahara", c: B("personagem"), a: ["urahara", "kisuke"], t: ["Loja", "Chapéu", "Bengala", "Inventor", "Sorriso"] },
+    { n: "Sosuke Aizen", c: B("personagem"), a: ["aizen", "sousuke aizen"], t: ["Traidor", "Óculos", "Ilusão", "Vilão", "Manipulador"] },
+    { n: "Yoruichi Shihoin", c: B("personagem"), a: ["yoruichi", "shihoin"], t: ["Gata", "Velocidade", "Mestra", "Deusa", "Morena"] },
+    { n: "Zanpakuto", c: B("item"), a: ["zampakuto", "zanpakutou", "espada", "zanpaktou"], t: ["Lâmina", "Espírito", "Alma", "Nome", "Arma"] },
+    { n: "Bankai", c: B("técnica"), a: [], t: ["Liberação", "Final", "Poder", "Transformação", "Espírito"] },
+    { n: "Hollow", c: B("conceito"), a: ["hollows", "hollowdo"], t: ["Máscara", "Buraco", "Alma", "Monstro", "Peito"] },
+    { n: "Shinigami", c: B("conceito"), a: ["shinigamis", "deus da morte"], t: ["Ceifadores", "Quimono", "Espada", "Alma", "Preto"] }
+  ];
+
+  var BL_MEDIUM = [
+    { n: "Soul Society", c: B("local"), a: ["sociedade das almas", "seireitei"], t: ["Além", "Rukongai", "Mundo", "Cidade", "Capitães"] },
+    { n: "Gotei 13", c: B("organização"), a: ["gotei treze", "13 esquadroes", "treze esquadroes", "gotei"], t: ["Capitães", "Divisões", "Exército", "Tenentes", "Proteção"] },
+    { n: "Hueco Mundo", c: B("local"), a: ["hueco mundo", "huecomundo"], t: ["Deserto", "Areia", "Lua", "Aizen", "Noite"] },
+    { n: "Espada", c: B("organização"), a: ["os espada", "10 espadas", "dez espadas"], t: ["Dez", "Números", "Elite", "Aizen", "Poderosos"] },
+    { n: "Arrancar", c: B("raça"), a: ["arrancars"], t: ["Fragmento", "Hollow", "Poder", "Humanoide", "Aizen"] },
+    { n: "Quincy", c: B("raça"), a: ["quincys"], t: ["Arco", "Flechas", "Raça", "Reishi", "Cruz"] },
+    { n: "Hogyoku", c: B("item"), a: ["hougyoku", "hōgyoku"], t: ["Esfera", "Fusão", "Aizen", "Poder", "Desejo"] },
+    { n: "Getsuga Tensho", c: B("técnica"), a: ["getsuga", "getsuga tenshou", "lua crescente"], t: ["Ichigo", "Lua", "Onda", "Corte", "Energia"] },
+    { n: "Tensa Zangetsu", c: B("item"), a: ["zangetsu", "tensa zangetsu"], t: ["Espada", "Preta", "Ichigo", "Bankai", "Fina"] },
+    { n: "Kenpachi Zaraki", c: B("personagem"), a: ["kenpachi", "zaraki"], t: ["Violento", "Sinos", "Guerra", "Cicatriz", "Yachiru"] },
+    { n: "Toshiro Hitsugaya", c: B("personagem"), a: ["toshiro", "hitsugaya", "toushirou"], t: ["Gelo", "Capitão", "Criança", "Prodígio", "Dragão"] },
+    { n: "Ulquiorra Cifer", c: B("personagem"), a: ["ulquiorra", "ulquiorra schiffer"], t: ["Quarto", "Lágrimas", "Pálido", "Verde", "Vazio"] },
+    { n: "Grimmjow Jaegerjaquez", c: B("personagem"), a: ["grimmjow", "grimmjow jeagerjaques"], t: ["Azul", "Pantera", "Selvagem", "Rival", "Sexto"] },
+    { n: "Gin Ichimaru", c: B("personagem"), a: ["gin", "ichimaru"], t: ["Sorriso", "Raposa", "Traidor", "Prata", "Aizen"] },
+    { n: "Kaname Tosen", c: B("personagem"), a: ["tosen", "kaname"], t: ["Justiça", "Cego", "Capitão", "Traidor", "Escuro"] },
+    { n: "Yamamoto Genryusai", c: B("personagem"), a: ["yamamoto", "genryusai", "genryuusai", "yamamoto genryuusai"], t: ["Fogo", "Velho", "Comandante", "Bengala", "Chamas"] },
+    { n: "Shunsui Kyoraku", c: B("personagem"), a: ["kyoraku", "shunsui"], t: ["Chapéu", "Preguiçoso", "Vinho", "Capitão", "Jogos"] },
+    { n: "Mayuri Kurotsuchi", c: B("personagem"), a: ["mayuri", "kurotsuchi"], t: ["Cientista", "Maluco", "Maquiagem", "Experimentos", "Capitão"] }
+  ];
+
+  var BL_HARD = [
+    { n: "Jushiro Ukitake", c: B("personagem"), a: ["ukitake", "jyuushirou"], t: ["Doente", "Gentil", "Capitão", "Cabelos", "Tosse"] },
+    { n: "Sajin Komamura", c: B("personagem"), a: ["komamura", "sajin"], t: ["Lobo", "Capitão", "Armadura", "Gigante", "Honra"] },
+    { n: "Retsu Unohana", c: B("personagem"), a: ["unohana", "retsu"], t: ["Cura", "Capitã", "Gentil", "Trança", "Assustadora"] },
+    { n: "Soi Fon", c: B("personagem"), a: ["soifon", "soi fong"], t: ["Abelha", "Capitã", "Assassina", "Furtiva", "Aguilhão"] },
+    { n: "Rangiku Matsumoto", c: B("personagem"), a: ["rangiku", "matsumoto"], t: ["Cinzas", "Tenente", "Loira", "Sake", "Gato"] },
+    { n: "Nelliel Tu Odelschwanck", c: B("personagem"), a: ["nelliel", "nel", "nel tu"], t: ["Verde", "Chifre", "Antiga", "Criança", "Gentil"] },
+    { n: "Starrk", c: B("personagem"), a: ["coyote starrk", "stark"], t: ["Lobo", "Solitário", "Primeiro", "Pistolas", "Sonolento"] },
+    { n: "Barragan Luisenbarn", c: B("personagem"), a: ["barragan", "baraggan"], t: ["Rei", "Velhice", "Segundo", "Machado", "Esqueleto"] },
+    { n: "Tia Halibel", c: B("personagem"), a: ["halibel", "tier halibel"], t: ["Tubarões", "Água", "Terceira", "Colarinho", "Líder"] },
+    { n: "Nnoitra Gilga", c: B("personagem"), a: ["nnoitra"], t: ["Alto", "Foice", "Magro", "Quinto", "Sádico"] },
+    { n: "Szayelaporro Granz", c: B("personagem"), a: ["szayel", "szayel aporro", "szayelaporro"], t: ["Cientista", "Rosa", "Oitavo", "Vaidoso", "Experimentos"] },
+    { n: "Yhwach", c: B("personagem"), a: ["ywach", "yhwach"], t: ["Rei", "Guerra", "Pai", "Sombras", "Almas"] },
+    { n: "Isshin Kurosaki", c: B("personagem"), a: ["isshin"], t: ["Pai", "Médico", "Barba", "Clínica", "Aposentado"] },
+    { n: "Masaki Kurosaki", c: B("personagem"), a: ["masaki"], t: ["Mãe", "Morta", "Rio", "Gentil", "Sacrifício"] },
+    { n: "Karakura", c: B("local"), a: ["cidade de karakura", "karakura town"], t: ["Cidade", "Escola", "Ichigo", "Humanos", "Batalha"] },
+    { n: "Guerra Sangrenta dos Mil Anos", c: B("arco"), a: ["thousand year blood war", "guerra de sangue de mil anos", "guerra dos mil anos", "guerra sangrenta"], t: ["Quincy", "Final", "Invasão", "Arco", "Yhwach"] },
+    { n: "Saga da Soul Society", c: B("arco"), a: ["arco da soul society", "soul society saga", "resgate da rukia"], t: ["Rukia", "Resgate", "Início", "Capitães", "Execução"] },
+    { n: "Shikai", c: B("técnica"), a: [], t: ["Liberação", "Primeira", "Espada", "Nome", "Forma"] }
+  ];
+
+  function O(tipo) { return "One Piece · " + tipo; }
+
+  var OP_EASY = [
+    { n: "Monkey D. Luffy", c: O("personagem"), a: ["luffy", "monkey d luffy", "monkey luffy", "chapeu de palha"], t: ["Chapéu", "Borracha", "Capitão", "Sonhador", "Elástico"] },
+    { n: "Roronoa Zoro", c: O("personagem"), a: ["zoro", "roronoa"], t: ["Espadas", "Verde", "Perdido", "Espadachim", "Cicatriz"] },
+    { n: "Nami", c: O("personagem"), a: [], t: ["Navegadora", "Tangerina", "Dinheiro", "Mapas", "Ladra"] },
+    { n: "Usopp", c: O("personagem"), a: ["usoppu", "ussop"], t: ["Mentiroso", "Atirador", "Nariz", "Estilingue", "Covarde"] },
+    { n: "Sanji", c: O("personagem"), a: ["vinsmoke sanji", "pe preto"], t: ["Cozinheiro", "Pés", "Cavalheiro", "Cigarro", "Sobrancelha"] },
+    { n: "Tony Tony Chopper", c: O("personagem"), a: ["chopper", "tony chopper"], t: ["Rena", "Médico", "Fofo", "Chapéu", "Algodão"] },
+    { n: "Nico Robin", c: O("personagem"), a: ["robin", "nico robin"], t: ["Arqueóloga", "Braços", "Livros", "Passado", "Flores"] },
+    { n: "Franky", c: O("personagem"), a: ["cutty flam"], t: ["Ciborgue", "Cola", "Carpinteiro", "Pose", "Cabelo"] },
+    { n: "Brook", c: O("personagem"), a: ["brook"], t: ["Esqueleto", "Música", "Violino", "Afro", "Piadas"] },
+    { n: "Portgas D. Ace", c: O("personagem"), a: ["ace", "portgas ace", "punho de fogo"], t: ["Fogo", "Irmão", "Chapéu", "Tatuagem", "Sacrifício"] },
+    { n: "Shanks", c: O("personagem"), a: ["shanks o ruivo", "akagami no shanks", "shanks ruivo"], t: ["Ruivo", "Cicatriz", "Imperador", "Capa", "Braço"] },
+    { n: "Gomu Gomu no Mi", c: O("item"), a: ["gomu gomu", "fruta da borracha", "fruta de borracha"], t: ["Borracha", "Luffy", "Elástico", "Fruta", "Nika"] },
+    { n: "Akuma no Mi", c: O("item"), a: ["fruta do diabo", "frutas do diabo", "akuma no mi"], t: ["Poderes", "Mar", "Nadar", "Maldição", "Consumo"] },
+    { n: "Going Merry", c: O("item"), a: ["merry"], t: ["Navio", "Carneiro", "Primeiro", "Caravela", "Adeus"] }
+  ];
+
+  var OP_MEDIUM = [
+    { n: "Thousand Sunny", c: O("item"), a: ["sunny", "thousand sunny"], t: ["Navio", "Leão", "Segundo", "Franky", "Sol"] },
+    { n: "Haki", c: O("técnica"), a: [], t: ["Vontade", "Observação", "Armamento", "Conquistador", "Espírito"] },
+    { n: "Gear Fifth", c: O("transformação"), a: ["gear 5", "gear five", "gear quinta", "nika"], t: ["Luffy", "Borracha", "Branco", "Risada", "Deus"] },
+    { n: "Gol D. Roger", c: O("personagem"), a: ["roger", "gol d roger", "rei dos piratas"], t: ["Lendário", "Tesouro", "Executado", "Sorriso", "Primeiro"] },
+    { n: "Barba Branca", c: O("personagem"), a: ["whitebeard", "edward newgate", "newgate"], t: ["Bigode", "Terremoto", "Pai", "Velho", "Imperador"] },
+    { n: "Barba Negra", c: O("personagem"), a: ["blackbeard", "marshall d teach", "teach", "marshall d. teach"], t: ["Traidor", "Escuridão", "Dentes", "Dois", "Ambição"] },
+    { n: "Kaido", c: O("personagem"), a: [], t: ["Dragão", "Bêbado", "Imperador", "Forte", "Wano"] },
+    { n: "Big Mom", c: O("personagem"), a: ["charlotte linlin", "linlin"], t: ["Doces", "Mãe", "Imperatriz", "Filhos", "Fome"] },
+    { n: "Trafalgar Law", c: O("personagem"), a: ["law", "trafalgar d water law", "trafalgar"], t: ["Cirurgião", "Bisturi", "Espada", "Tatuagens", "Chapéu"] },
+    { n: "Eustass Kid", c: O("personagem"), a: ["kid", "eustass"], t: ["Magnetismo", "Ferro", "Braço", "Batom", "Capitão"] },
+    { n: "Marinha", c: O("organização"), a: ["marine", "marinha"], t: ["Almirantes", "Justiça", "Soldados", "Governo", "Capas"] },
+    { n: "Shichibukai", c: O("organização"), a: ["7 corsarios", "sete corsarios", "corsarios", "warlords", "shichibukai"], t: ["Sete", "Governo", "Piratas", "Pactos", "Abolido"] },
+    { n: "Yonkou", c: O("organização"), a: ["yonko", "imperador", "imperadores", "os quatro imperadores"], t: ["Quatro", "Supremos", "Piratas", "Tripulações", "Mar"] },
+    { n: "Grand Line", c: O("local"), a: ["grande linha", "grandline"], t: ["Mar", "Rota", "Perigoso", "Tesouro", "Fronteira"] },
+    { n: "Sabaody", c: O("local"), a: ["arquipelago sabaody", "sabaody archipelago", "arquipelago de sabaody"], t: ["Mangues", "Bolhas", "Leilão", "Separação", "Ilhas"] },
+    { n: "Wano", c: O("local"), a: ["wano kuni", "pais de wano", "terra de wano"], t: ["Samurais", "Isolado", "Kimono", "Kaido", "Oden"] },
+    { n: "Alabasta", c: O("local"), a: ["reino de alabasta"], t: ["Deserto", "Vivi", "Crocodile", "Princesa", "Areia"] },
+    { n: "Marineford", c: O("local"), a: ["guerra de marineford"], t: ["Guerra", "Ace", "Execução", "Almirantes", "Baía"] }
+  ];
+
+  var OP_HARD = [
+    { n: "Sakazuki", c: O("personagem"), a: ["akainu", "almirante akainu"], t: ["Magma", "Almirante", "Cão", "Justiça", "Absoluta"] },
+    { n: "Kuzan", c: O("personagem"), a: ["aokiji", "kuzan aokiji", "aokiji"], t: ["Gelo", "Almirante", "Preguiçoso", "Venda", "Frio"] },
+    { n: "Borsalino", c: O("personagem"), a: ["kizaru", "almirante kizaru"], t: ["Luz", "Almirante", "Amarelo", "Terno", "Calmo"] },
+    { n: "Dracule Mihawk", c: O("personagem"), a: ["mihawk", "olhos de falcao", "dracule"], t: ["Espadachim", "Melhor", "Chapéu", "Castelo", "Olhar"] },
+    { n: "Boa Hancock", c: O("personagem"), a: ["hancock", "boa hancock"], t: ["Imperatriz", "Beleza", "Pedra", "Cobras", "Amor"] },
+    { n: "Crocodile", c: O("personagem"), a: ["sir crocodile", "croc"], t: ["Areia", "Gancho", "Charuto", "Cicatriz", "Deserto"] },
+    { n: "Dofamingo", c: O("personagem"), a: ["doflamingo", "donquixote doflamingo"], t: ["Penas", "Óculos", "Fios", "Dressrosa", "Sorriso"] },
+    { n: "Rob Lucci", c: O("personagem"), a: ["lucci", "rob lucci"], t: ["Leopardo", "Pombo", "Agente", "Assassino", "Governo"] },
+    { n: "Perona", c: O("personagem"), a: ["princesa fantasma"], t: ["Fantasmas", "Rosa", "Negativos", "Gótica", "Ursinhos"] },
+    { n: "Vivi", c: O("personagem"), a: ["nefertari vivi", "nefeltari vivi"], t: ["Princesa", "Alabasta", "Azul", "Pato", "Reino"] },
+    { n: "Buggy", c: O("personagem"), a: ["buggy o palhaco", "buggy"], t: ["Palhaço", "Nariz", "Partes", "Cortes", "Sortudo"] },
+    { n: "Monkey D. Garp", c: O("personagem"), a: ["garp", "monkey d garp", "heroi da marinha"], t: ["Herói", "Avô", "Rosquinhas", "Punho", "Velho"] },
+    { n: "Monkey D. Dragon", c: O("personagem"), a: ["dragon", "monkey d dragon"], t: ["Revolucionário", "Pai", "Tempestade", "Procurado", "Capa"] },
+    { n: "Sabo", c: O("personagem"), a: [], t: ["Revolucionário", "Irmão", "Fogo", "Cartola", "Cicatriz"] },
+    { n: "Kozuki Oden", c: O("personagem"), a: ["oden", "oden kozuki"], t: ["Samurai", "Duas", "Espadas", "Fervido", "Roger"] },
+    { n: "Laboon", c: O("personagem"), a: [], t: ["Baleia", "Gigante", "Cabo", "Farol", "Brook"] },
+    { n: "Raftel", c: O("local"), a: ["laugh tale", "lugh tale", "raftel"], t: ["Final", "Tesouro", "Destino", "Roger", "Risada"] },
+    { n: "Ilha dos Homens-Peixe", c: O("local"), a: ["ilha gyojin", "fish-man island", "fishman island", "ilha dos homens peixe", "ilha dos tritoes", "ilha tritao"], t: ["Submersa", "Fundo", "Sereias", "Bolhas", "Netuno"] }
+  ];
+
+  var CATALOG = [
+    { id: "jjk", name: "Jujutsu Kaisen", easy: JJK_EASY, medium: JJK_MEDIUM, hard: JJK_HARD },
+    { id: "jojo", name: "JoJo", easy: JOJO_EASY, medium: JOJO_MEDIUM, hard: JOJO_HARD },
+    { id: "naruto", name: "Naruto", easy: NARUTO_EASY, medium: NARUTO_MEDIUM, hard: NARUTO_HARD },
+    { id: "dragonball", name: "Dragon Ball", easy: DB_EASY, medium: DB_MEDIUM, hard: DB_HARD },
+    { id: "bleach", name: "Bleach", easy: BL_EASY, medium: BL_MEDIUM, hard: BL_HARD },
+    { id: "onepiece", name: "One Piece", easy: OP_EASY, medium: OP_MEDIUM, hard: OP_HARD }
+  ];
+
+  /* Fotos das palavras (miniaturas 200x150). Palavra sem foto aparece só em texto. */
+  var PHOTOS = {};
+
+  var MODES = {
+    easy:   { name: "Fácil",   kanji: "易", chars: 8,  hints: 15, blurb: "Protagonistas e termos que todo fã conhece" },
+    medium: { name: "Médio",   kanji: "中", chars: 6,  hints: 10, blurb: "Técnicas, maldições e conceitos" },
+    hard:   { name: "Difícil", kanji: "難", chars: 10, hints: 13, blurb: "Coadjuvantes, arcos e lugares" }
+  };
+
+  /* ---------- Utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function norm(s) {
+    return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+  function lev(a, b) {
+    var prev = [], cur = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i];
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  /* Comparação de respostas: ignora acento, maiúscula, artigo ("o Gojo"), variações de romanização
+     (Shouyou/Shoyo, Tsunade/Tunade, Chopper/Shopper), erro de 1 ou 2 letras e aceita só o primeiro ou o último nome
+     quando ele identifica um personagem só. */
+  function canon(x) {
+    return norm(x).replace(/ou/g, "o").replace(/oo/g, "o").replace(/uu/g, "u").replace(/sh/g, "s").replace(/ch/g, "x").replace(/ts/g, "t").replace(/c/g, "k").replace(/ph/g, "f").replace(/([bdfghjklmnpqrstvwxz])\1+/g, "$1");
+  }
+  function stripFiller(g) {
+    var x = String(g).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(), prev;
+    do { prev = x; x = x.replace(/^(acho que|sera que|seria|talvez|e|eh|o|a|os|as|do|da)\s+/, ""); } while (x !== prev);
+    return x;
+  }
+  var tokenCount = null;
+  function tokensOf(name) {
+    return String(name).split(/[\s.\-]+/).map(canon).filter(function (t) { return t.length >= 4; });
+  }
+  var exactOwners = Object.create(null);
+  function countTokens() {
+    tokenCount = Object.create(null);
+    CATALOG.forEach(function (an) {
+      ["easy", "medium", "hard"].forEach(function (lv) {
+        (an[lv] || []).forEach(function (it) {
+          [it.n].concat(it.a || []).forEach(function (x) {
+            var k = canon(x);
+            if (!k) return;
+            (exactOwners[k] = exactOwners[k] || []);
+            if (exactOwners[k].indexOf(it.n) < 0) exactOwners[k].push(it.n);
+          });
+        });
+      });
+    });
+    CATALOG.forEach(function (an) {
+      ["easy", "medium", "hard"].forEach(function (lv) {
+        (an[lv] || []).forEach(function (it) {
+          var seen = Object.create(null);
+          tokensOf(it.n).forEach(function (t) { if (!seen[t]) { seen[t] = 1; tokenCount[t] = (tokenCount[t] || 0) + 1; } });
+        });
+      });
+    });
+  }
+  function near(g, c) {
+    if (g === c) return true;
+    var d = Math.abs(g.length - c.length);
+    if (c.length >= 5 && d <= 1 && lev(g, c) <= 1) return true;
+    if (c.length >= 9 && d <= 2 && lev(g, c) <= 2) return true;
+    return false;
+  }
+  function matches(guess, item) {
+    var forms = [canon(guess), canon(stripFiller(guess))];
+    if (!forms[0] && !forms[1]) return false;
+    if (!tokenCount) countTokens();
+    var cands = [item.n].concat(item.a || []).map(canon).filter(Boolean);
+    /* Se o chute é exatamente o nome de OUTRO item (Maki x Mai, Vegeta x Vegetto), nunca vale como este. */
+    var owners = exactOwners[forms[0]] || exactOwners[forms[1]];
+    if (owners && owners.indexOf(item.n) < 0) return false;
+    var isChar = /personagem|stand/i.test(item.c || "");
+    if (isChar) {
+      tokensOf(item.n).forEach(function (t) { if (tokenCount[t] === 1) cands.push(t); });
+    }
+    for (var i = 0; i < cands.length; i++) {
+      for (var j = 0; j < forms.length; j++) if (forms[j] && near(forms[j], cands[i])) return true;
+    }
+    return false;
+  }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function show(id) {
+    var list = document.querySelectorAll(".screen");
+    for (var i = 0; i < list.length; i++) list[i].hidden = list[i].id !== id;
+    window.scrollTo(0, 0);
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  /* ---------- Estado ---------- */
+  var state = { wins: [0, 0], anime: "all", key: null, mode: null, names: ["", ""], drawn: null, scores: [0, 0], queue: [], idx: 0, used: 0, over: false, first: 0 };
+  var online = { active: false, rm: null, me: "host", code: "", name: "", G: null, guestPeer: null, hostSeen: false, got: false, unsubs: [], hb: null, hello: null, findT: null, guestGone: null, hostGone: null, drawTimer: null, animating: false, lastV: -1, lastPhase: null, lastIdx: -1, lastVn: 0, lastGn: 0, lastUsed: -1, lastDraw: -1 };
+
+  /* Avatares: ícones próprios, desenhados em traço. */
+  var AVATARS = [
+    ["Shuriken", "<path d=\"M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z\"/><circle cx=\"12\" cy=\"12\" r=\"1.6\"/>"],
+    ["Katana", "<path d=\"M20 4L8 16\"/><path d=\"M14 6l4 4\"/><path d=\"M8 16l-4 4\"/>"],
+    ["Máscara", "<path d=\"M5 5h14v8a7 7 0 0 1-14 0z\"/><path d=\"M8 10l3 1M16 10l-3 1M9 16h6\"/><path d=\"M5 5L3 2M19 5l2-3\"/>"],
+    ["Raposa", "<path d=\"M3 4l5 4h8l5-4v8c0 5-4 9-9 9s-9-4-9-9z\"/><path d=\"M9 13h.01M15 13h.01M11 17h2\"/>"],
+    ["Gato", "<path d=\"M6 3l3 4h6l3-4v10a6 6 0 0 1-12 0z\"/><path d=\"M9.5 12h.01M14.5 12h.01\"/><path d=\"M2 12h4M18 12h4\"/>"],
+    ["Lua", "<path d=\"M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z\"/>"],
+    ["Sol", "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2\"/>"],
+    ["Cerejeira", "<circle cx=\"12\" cy=\"6\" r=\"3\"/><circle cx=\"18\" cy=\"10\" r=\"3\"/><circle cx=\"16\" cy=\"17\" r=\"3\"/><circle cx=\"8\" cy=\"17\" r=\"3\"/><circle cx=\"6\" cy=\"10\" r=\"3\"/>"],
+    ["Onda", "<path d=\"M2 14c3-5 5-5 8 0s5 5 8 0 3-3 4-2\"/><path d=\"M2 20c3-4 5-4 8 0s5 4 8 0\"/>"],
+    ["Montanha", "<path d=\"M2 20l7-12 4 6 3-4 6 10z\"/>"],
+    ["Chama", "<path d=\"M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-6 1 2 2 2 3-6z\"/>"],
+    ["Raio", "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>"],
+    ["Caveira", "<path d=\"M5 11a7 7 0 0 1 14 0v4l-3 1v4H8v-4l-3-1z\"/><circle cx=\"9\" cy=\"11\" r=\"1.6\"/><circle cx=\"15\" cy=\"11\" r=\"1.6\"/>"],
+    ["Coroa", "<path d=\"M3 18l1-11 5 5 3-7 3 7 5-5 1 11z\"/>"],
+    ["Espadas", "<path d=\"M4 4l16 16M20 4L4 20\"/><path d=\"M4 9l5-5M20 9l-5-5\"/>"],
+    ["Escudo", "<path d=\"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z\"/>"],
+    ["Olho", "<path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>"],
+    ["Fone", "<path d=\"M4 15v-3a8 8 0 0 1 16 0v3\"/><rect x=\"3\" y=\"14\" width=\"4\" height=\"6\" rx=\"1\"/><rect x=\"17\" y=\"14\" width=\"4\" height=\"6\" rx=\"1\"/>"],
+    ["Controle", "<rect x=\"2\" y=\"7\" width=\"20\" height=\"11\" rx=\"5\"/><path d=\"M7 10v5M4.5 12.5h5\"/><path d=\"M16 11h.01M18.5 14h.01\"/>"],
+    ["Estrela", "<path d=\"M12 2l3 7 7 .7-5.3 4.7 1.6 7.1L12 17.8 5.7 21.5l1.6-7.1L2 9.7 9 9z\"/>"],
+    ["Livro", "<path d=\"M4 4h7a2 2 0 0 1 1 .3A2 2 0 0 1 13 4h7v15h-7a2 2 0 0 0-2 1 2 2 0 0 0-2-1H4z\"/><path d=\"M12 5v15\"/>"],
+    ["Ramen", "<path d=\"M3 11h18a9 9 0 0 1-18 0z\"/><path d=\"M8 4c-1 2 1 3 0 5M13 3c-1 2 1 3 0 6\"/>"],
+    ["Diamante", "<path d=\"M12 2l8 10-8 10-8-10z\"/>"],
+    ["Torii", "<path d=\"M2 6c6 2 14 2 20 0\"/><path d=\"M4 9h16\"/><path d=\"M7 9v12M17 9v12\"/><path d=\"M12 7v2\"/>"],
+    ["Robô", "<rect x=\"5\" y=\"8\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5\"/><circle cx=\"12\" cy=\"3.5\" r=\"1\"/>"]
+  ];
+  var AVMAP = Object.create(null);
+  var avSel = [0, 3];
+  var onAvSel = 0;
+  function avIdx(v) { v = Number(v); return v >= 0 && v < AVATARS.length && v === Math.floor(v) ? v : 0; }
+  function avSvg(i) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + AVATARS[i][1] + "</svg>"; }
+  function nameInto(node, name) {
+    clear(node);
+    var i = AVMAP[name];
+    if (i != null && AVATARS[i]) { var a = el("span", "av"); a.innerHTML = avSvg(i); node.appendChild(a); }
+    node.appendChild(document.createTextNode(name));
+  }
+  function buildAvPicker(box, get, set) {
+    function paint() {
+      var kids = box.children;
+      for (var k = 0; k < kids.length; k++) kids[k].setAttribute("aria-pressed", k === get() ? "true" : "false");
+    }
+    AVATARS.forEach(function (a, i) {
+      var b = el("button", "avbtn");
+      b.type = "button";
+      b.title = a[0];
+      b.setAttribute("aria-label", a[0]);
+      b.innerHTML = avSvg(i);
+      b.addEventListener("click", function () { set(i); paint(); });
+      box.appendChild(b);
+    });
+    paint();
+  }
+
+  /* Sons curtos (WebAudio). Dá para desligar no botão da tela inicial. */
+  var sound = true, actx = null, lastSnd = "";
+  try { sound = localStorage.getItem("dica-dojo-som") !== "0"; } catch (e) { sound = true; }
+  function tone(freq, t0, dur, vol) {
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, actx.currentTime + t0);
+    g.gain.exponentialRampToValueAtTime(vol, actx.currentTime + t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + t0 + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(actx.currentTime + t0); o.stop(actx.currentTime + t0 + dur + 0.05);
+  }
+  function sfx(kind, key) {
+    if (!sound) return;
+    if (key != null) { if (key === lastSnd) return; lastSnd = key; }
+    try {
+      if (!actx) { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); }
+      if (actx.state === "suspended") actx.resume();
+      if (kind === "ok") { tone(660, 0, 0.14, 0.08); tone(880, 0.12, 0.22, 0.08); }
+      else if (kind === "bad") { tone(220, 0, 0.22, 0.08); tone(165, 0.16, 0.28, 0.08); }
+      else if (kind === "win") { tone(523, 0, 0.16, 0.08); tone(659, 0.15, 0.16, 0.08); tone(784, 0.3, 0.3, 0.08); }
+      else if (kind === "end") { tone(523, 0, 0.2, 0.07); tone(392, 0.2, 0.3, 0.07); }
+    } catch (e) { /* sem áudio */ }
+  }
+  /* Faixas do Dojo: progresso salvo só neste aparelho. */
+  var BELTS = [
+    ["Branca", 0, "#e6e6e6"], ["Amarela", 5, "#d2b552"], ["Laranja", 15, "#d58a45"], ["Verde", 30, "#5f9a6c"],
+    ["Azul", 50, "#5b82c2"], ["Marrom", 80, "#86593d"], ["Preta", 120, "#2a2a2c"]
+  ];
+  var TITLES = [[0.15, "Aprendizes do Dojo"], [0.35, "Estudantes do Dojo"], [0.55, "Discípulos do Dojo"], [0.75, "Mestres do Dojo"], [9, "Lendas do Dojo"]];
+  var xp = { hits: 0, games: 0, best: 0 }, streak = 0, lastXpKey = "", lastXpMsg = "", lastGameKey = "";
+  try {
+    var rawXp = JSON.parse(localStorage.getItem("dica-dojo-xp") || "{}") || {};
+    xp.hits = Number(rawXp.hits) || 0; xp.games = Number(rawXp.games) || 0; xp.best = Number(rawXp.best) || 0;
+  } catch (e) { /* sem armazenamento */ }
+  function saveXp() { try { localStorage.setItem("dica-dojo-xp", JSON.stringify(xp)); } catch (e) { /* sem armazenamento */ } }
+  function beltIdx(h) { var k = 0; BELTS.forEach(function (b, i) { if (h >= b[1]) k = i; }); return k; }
+  function paintBelt() {
+    var box = $("belt");
+    if (!box) return;
+    clear(box);
+    var i = beltIdx(xp.hits), b = BELTS[i], nx = BELTS[i + 1];
+    var row = el("div", "row");
+    var dot = el("span", "dot"); dot.style.setProperty("--bc", b[2]);
+    row.appendChild(dot);
+    row.appendChild(document.createTextNode("Faixa " + b[0]));
+    box.appendChild(row);
+    var bar = el("div", "bar"), fill = el("i");
+    fill.style.width = (nx ? Math.round(100 * (xp.hits - b[1]) / (nx[1] - b[1])) : 100) + "%";
+    bar.appendChild(fill);
+    box.appendChild(bar);
+    var sub = xp.hits + (xp.hits === 1 ? " acerto" : " acertos") + (nx ? " · faltam " + (nx[1] - xp.hits) + " para a faixa " + nx[0] : " · você chegou ao topo");
+    if (xp.best > 1) sub += " · melhor sequência: " + xp.best;
+    box.appendChild(el("div", "sub", sub));
+  }
+  function recordRound(won, key) {
+    if (key === lastXpKey) return lastXpMsg;
+    lastXpKey = key; lastXpMsg = "";
+    var meIdx = online.me === "host" ? 0 : 1;
+    if (online.active && guesserIdx() !== meIdx) return "";
+    if (!online.active && state.ai && guesserIdx() === 1) return "";
+    if (!won) { streak = 0; return ""; }
+    var before = beltIdx(xp.hits);
+    xp.hits++; streak++;
+    if (streak > xp.best) xp.best = streak;
+    var msgs = [];
+    if (streak >= 2) msgs.push("Sequência de " + streak + " acertos");
+    var after = beltIdx(xp.hits);
+    if (after > before) msgs.push("Nova faixa: " + BELTS[after][0] + "!");
+    saveXp(); paintBelt();
+    lastXpMsg = msgs.join(" · ");
+    return lastXpMsg;
+  }
+  function recordGame(key, ratio) {
+    var t = TITLES.find(function (x) { return ratio < x[0]; })[1];
+    if (key !== lastGameKey) { lastGameKey = key; xp.games++; saveXp(); }
+    return t;
+  }
+
+  function ensure(id) { if ($(id).hidden) show(id); }
+  function setPhoto(id, item) {
+    var img = $(id);
+    var src = PHOTOS[item.n];
+    if (src) { img.src = src; img.alt = item.n; img.hidden = false; }
+    else { img.removeAttribute("src"); img.alt = ""; img.hidden = true; }
+  }
+  function noop() {}
+  function resetLayout() {
+    $("secret").hidden = false;
+    $("hint-panel").hidden = false;
+    $("verdict-box").hidden = true;
+    $("r-scores").hidden = false;
+    $("skip").hidden = false;
+    $("hint-note").textContent = "";
+    $("give").hidden = false;
+    $("give").textContent = "Dei uma dica";
+    $("ai-hint-row").hidden = true;
+    $("guess-form").hidden = false;
+    $("guess-label").textContent = "";
+  }
+
+  /* ---------- Início ---------- */
+  function poolFor(level) {
+    var out = [];
+    CATALOG.forEach(function (an) {
+      if (state.anime === "all" || state.anime === an.id) out = out.concat(an[level]);
+    });
+    return out;
+  }
+  function renderCatalog() {
+    var total = poolFor("easy").length + poolFor("medium").length + poolFor("hard").length;
+    var c = $("catalog");
+    clear(c);
+    c.appendChild(el("b", null, String(total)));
+    c.appendChild(document.createTextNode(" palavras disponíveis"));
+  }
+  function renderPicker() {
+    var box = $("picker");
+    clear(box);
+    var opts = [{ id: "all", name: "Todos" }].concat(CATALOG.map(function (a) { return { id: a.id, name: a.name }; }));
+    opts.forEach(function (o) {
+      var on = state.anime === o.id;
+      var b = el("button", "pick" + (on ? " on" : ""), o.name);
+      b.type = "button";
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.addEventListener("click", function () { state.anime = o.id; renderPicker(); renderCatalog(); });
+      box.appendChild(b);
+    });
+  }
+  renderPicker();
+  renderCatalog();
+  var modesBox = $("modes");
+  ["easy", "medium", "hard"].forEach(function (key) {
+    var m = MODES[key];
+    var b = el("button", "mode panel");
+    b.type = "button";
+    b.setAttribute("data-mode", key);
+    b.appendChild(el("div", "kanji", m.kanji));
+    var info = el("div");
+    info.appendChild(el("div", "name", m.name));
+    info.appendChild(el("div", "blurb", m.blurb));
+    var chips = el("div", "chips");
+    chips.appendChild(el("span", "chip hl", m.chars + " personagens"));
+    chips.appendChild(el("span", "chip", m.hints + " dicas"));
+    info.appendChild(chips);
+    b.appendChild(info);
+    b.addEventListener("click", function () { openSetup(key); });
+    modesBox.appendChild(b);
+  });
+
+  /* ---------- Sorteio ---------- */
+  var drawTimer = null;
+
+  function readNames() {
+    var a = $("p1").value.trim() || "Jogador 1";
+    var b = aiOn ? AI_NAME : ($("p2").value.trim() || "Jogador 2");
+    if (norm(a) === norm(b)) b = b + " (2)";
+    state.ai = aiOn;
+    AVMAP[a] = avSel[0]; AVMAP[b] = aiOn ? AI_AV : avSel[1];
+    return [a, b];
+  }
+  function putNames(pair, rolling) {
+    nameInto($("nm-give"), pair[0]);
+    nameInto($("nm-guess"), pair[1]);
+    $("card-give").classList.toggle("rolling", rolling);
+    $("card-guess").classList.toggle("rolling", rolling);
+  }
+  function runDraw() {
+    clearInterval(drawTimer);
+    var pair = readNames();
+    var final = Math.random() < 0.5 ? [pair[0], pair[1]] : [pair[1], pair[0]];
+    state.drawn = final;
+    $("draw-area").hidden = false;
+    $("draw").textContent = "Sortear de novo";
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      putNames(final, false);
+      $("start").disabled = false;
+      $("draw").disabled = false;
+      return;
+    }
+    $("start").disabled = true;
+    $("draw").disabled = true;
+    var ticks = 0;
+    drawTimer = setInterval(function () {
+      ticks++;
+      if (ticks >= 12) {
+        clearInterval(drawTimer);
+        putNames(final, false);
+        $("start").disabled = false;
+        $("draw").disabled = false;
+      } else {
+        putNames(ticks % 2 ? [pair[0], pair[1]] : [pair[1], pair[0]], true);
+      }
+    }, 90);
+  }
+
+  function resetDraw() {
+    clearInterval(drawTimer);
+    state.drawn = null;
+    $("draw-area").hidden = true;
+    $("draw").textContent = "Sortear quem faz o quê";
+    $("draw").disabled = false;
+  }
+
+  function openSetup(key) {
+    state.wins = [0, 0];
+    aiOn = false; paintAi();
+    var m = MODES[key];
+    state.key = key;
+    $("setup-badge").textContent = m.name;
+    $("setup-title").textContent = "Modo " + m.name;
+    var r = $("setup-rule");
+    clear(r);
+    r.appendChild(document.createTextNode(m.chars + " personagens, até " + m.hints + " dicas em cada um. Acertar vale "));
+    r.appendChild(el("b", null, "1 ponto por dica restante, mais 1"));
+    r.appendChild(document.createTextNode("."));
+    resetDraw();
+    show("s-setup");
+  }
+  $("setup-back").addEventListener("click", function () { resetDraw(); show("s-home"); });
+  $("draw").addEventListener("click", runDraw);
+  paintBelt();
+  function paintSound() {
+    $("snd-toggle").textContent = sound ? "Som: ligado" : "Som: desligado";
+    $("snd-toggle").setAttribute("aria-pressed", sound ? "true" : "false");
+  }
+  $("snd-toggle").addEventListener("click", function () {
+    sound = !sound;
+    try { localStorage.setItem("dica-dojo-som", sound ? "1" : "0"); } catch (e) { /* sem armazenamento */ }
+    paintSound();
+    if (sound) sfx("ok");
+  });
+  paintSound();
+  buildAvPicker($("av-1"), function () { return avSel[0]; }, function (i) { avSel[0] = i; resetDraw(); });
+  buildAvPicker($("av-2"), function () { return avSel[1]; }, function (i) { avSel[1] = i; resetDraw(); });
+  buildAvPicker($("av-on"), function () { return onAvSel; }, function (i) { onAvSel = i; });
+  $("p1").addEventListener("input", resetDraw);
+  $("p2").addEventListener("input", resetDraw);
+  $("start").addEventListener("click", function () {
+    if (!state.drawn) return;
+    startGame(state.key, state.drawn);
+  });
+
+  /* ---------- Jogo ---------- */
+  function startGame(key, names) {
+    var m = MODES[key];
+    state.key = key;
+    state.mode = m;
+    state.names = names;
+    lastSnd = ""; streak = 0;
+    state.scores = [0, 0];
+    state.queue = shuffle(poolFor(key)).slice(0, m.chars);
+    state.idx = 0;
+    state.first = 0;
+    renderRound();
+  }
+
+  function narratorIdx() { return (state.first + state.idx) % 2; }
+  function guesserIdx() { return 1 - narratorIdx(); }
+  function current() { return state.queue[state.idx]; }
+  function worth() { return Math.max(1, state.mode.hints - state.used + 1); }
+
+  function renderScores(box, withRoles) {
+    clear(box);
+    for (var i = 0; i < 2; i++) {
+      var s = el("div", "score" + (withRoles && i === narratorIdx() ? " on" : ""));
+      var left = el("div", "who");
+      if (withRoles) left.appendChild(el("span", "role", i === narratorIdx() ? "Narrador" : "Adivinha"));
+      var nmNode = el("span");
+      nameInto(nmNode, state.names[i]);
+      left.appendChild(nmNode);
+      s.appendChild(left);
+      s.appendChild(el("div", "pts", String(state.scores[i])));
+      box.appendChild(s);
+    }
+  }
+
+  function renderPips() {
+    var box = $("pips");
+    clear(box);
+    for (var i = 0; i < state.mode.hints; i++) box.appendChild(el("span", "pip" + (i < state.used ? " on" : "")));
+  }
+
+  function renderHints() {
+    var max = state.mode.hints;
+    $("h-count").textContent = "Dica " + state.used + " de " + max;
+    $("h-worth").textContent = "Acerto agora vale " + worth() + (worth() === 1 ? " ponto" : " pontos");
+    $("give").disabled = state.used >= max;
+    renderPips();
+  }
+
+  function renderRound() {
+    resetLayout();
+    var item = current();
+    state.used = 0;
+    state.over = false;
+    state.rt = (state.rt || 0) + 1;
+    $("r-mode").textContent = state.mode.name;
+    $("r-count").textContent = "Personagem " + (state.idx + 1) + " de " + state.queue.length;
+    renderScores($("r-scores"), true);
+    var nar = state.names[narratorIdx()], gue = state.names[guesserIdx()];
+    $("r-roles").textContent = nar + " dá as dicas. " + gue + " tenta adivinhar.";
+    $("sec-cat").textContent = item.c;
+    $("sec-word").textContent = item.n;
+    setPhoto("sec-img", item);
+    var tips = $("sec-tips");
+    clear(tips);
+    tips.appendChild(el("li", null, "Palavras para usar: " + item.t.join(" · ")));
+    $("guess-label").textContent = "Chute de " + gue;
+    $("guess").value = "";
+    setFeedback("", "info");
+    renderHints();
+    aiLayout();
+    show("s-round");
+  }
+
+  function setFeedback(text, kind) {
+    var f = $("fb");
+    f.textContent = text;
+    f.className = "feedback " + (kind || "info");
+  }
+
+  /* ---------- IA (modo solo) ----------
+     A IA joga nos dois papéis pelo recurso "sample" do Claude. Sem ele, ela ainda dá dicas usando as palavras
+     sugeridas de cada item, mas não consegue adivinhar. */
+  var AI_NAME = "IA Sensei", AI_AV = 24, aiOn = false, sampleApi;
+  function getSample() {
+    if (sampleApi !== undefined) return Promise.resolve(sampleApi);
+    var p;
+    try { p = (window.claude && window.claude.use) ? Promise.resolve(window.claude.use("sample")) : Promise.resolve(null); } catch (e) { p = Promise.resolve(null); }
+    return p.then(function (a) { sampleApi = a || null; return sampleApi; }, function () { sampleApi = null; return null; });
+  }
+  function oneWord(t) {
+    return String(t || "").replace(/["'“”‘’`*_.,;:!?()\[\]]/g, " ").trim().split(/\s+/)[0].slice(0, 24);
+  }
+  function leaks(word, item) {
+    var c = canon(word);
+    if (!c) return true;
+    var keys = [item.n].concat(item.a || []).map(canon).concat(tokensOf(item.n));
+    return keys.some(function (k) { return k.length >= 4 && (c.indexOf(k) >= 0 || (k.indexOf(c) >= 0 && c.length >= 4)); });
+  }
+  function seenWord(list, w) { return list.some(function (x) { return canon(x) === canon(w); }); }
+  function aiPoolNames() {
+    return CATALOG.filter(function (an) { return state.anime === "all" || state.anime === an.id; }).map(function (an) { return an.name; });
+  }
+  function aiHint(item) {
+    var given = state.aiHints;
+    function fallback() {
+      for (var i = 0; i < item.t.length; i++) if (!seenWord(given, item.t[i])) return item.t[i];
+      return null;
+    }
+    return getSample().then(function (sample) {
+      if (!sample) return fallback();
+      var prompt = "Você é o narrador de um jogo de adivinhação sobre animes, em português do Brasil.\n" +
+        "Palavra secreta: \"" + item.n + "\" (" + item.c + ").\n" +
+        "Dicas já dadas, em ordem: " + (given.length ? given.join(", ") : "nenhuma") + ".\n" +
+        "Dê UMA nova dica feita de UMA ÚNICA palavra (sem espaços), diferente das anteriores. Comece vaga e fique um pouco mais reveladora a cada dica. " +
+        "Nunca use o nome da palavra secreta nem partes dele. Responda só com a palavra.";
+      return sample(prompt, { modelTier: "quick", cache: false }).then(function (r) {
+        var w = oneWord(r && r.text);
+        return (!w || leaks(w, item) || seenWord(given, w)) ? fallback() : w;
+      }, function () { return fallback(); });
+    });
+  }
+  /* Chute da IA sem o Claude: compara as dicas dadas com as palavras sugeridas, o nome e os apelidos de cada item. */
+  function localGuess() {
+    var pool = [];
+    CATALOG.forEach(function (an) {
+      if (state.anime === "all" || state.anime === an.id) ["easy", "medium", "hard"].forEach(function (l) { pool = pool.concat(an[l]); });
+    });
+    var hs = state.aiHints.map(canon).filter(Boolean);
+    var best = [], bs = -1;
+    pool.forEach(function (it) {
+      if (state.aiWrong.some(function (w) { return matches(w, it); })) return;
+      var tags = it.t.map(canon), names = [it.n].concat(it.a || []).map(canon).concat(tokensOf(it.n));
+      var sc = 0;
+      hs.forEach(function (h) {
+        if (names.indexOf(h) >= 0) sc += 10;
+        else if (tags.indexOf(h) >= 0) sc += 3;
+        else if (tags.some(function (t) { return near(h, t); }) || names.some(function (t) { return near(h, t); })) sc += 2;
+        else if (h.length >= 4 && tags.concat(names).some(function (t) { return t.length >= 4 && (t.indexOf(h) >= 0 || h.indexOf(t) >= 0); })) sc += 1;
+      });
+      if (sc > bs) { bs = sc; best = [it]; } else if (sc === bs) best.push(it);
+    });
+    if (!best.length) return null;
+    return best[Math.floor(Math.random() * best.length)].n;
+  }
+  function aiGuess(item) {
+    return getSample().then(function (sample) {
+      if (!sample) return localGuess();
+      var prompt = "Você está jogando um jogo de adivinhação sobre animes, em português do Brasil.\n" +
+        "A resposta é um personagem, técnica, item, lugar ou conceito de: " + aiPoolNames().join(", ") + ".\n" +
+        "Dicas de uma palavra, em ordem: " + state.aiHints.join(", ") + ".\n" +
+        (state.aiWrong.length ? "Chutes errados anteriores (não repita): " + state.aiWrong.join(", ") + ".\n" : "") +
+        "Dê o seu melhor chute. Responda só com o nome, sem explicação.";
+      return sample(prompt, { modelTier: "quick", cache: false }).then(function (r) {
+        var g = String((r && r.text) || "").split("\n")[0].replace(/["“”*_`]/g, "").replace(/[.!]+$/, "").trim().slice(0, 60);
+        return g || null;
+      }, function () { return null; });
+    });
+  }
+  function paintAi() {
+    var t = $("ai-toggle");
+    t.setAttribute("aria-pressed", aiOn ? "true" : "false");
+    t.textContent = aiOn ? "Jogando contra a IA. Toque para voltar a dois jogadores" : "Sem ninguém por perto? Jogar contra a IA";
+    $("ai-note").hidden = !aiOn;
+    $("p2").disabled = aiOn;
+    $("p2").value = aiOn ? AI_NAME : "";
+    $("av-2").hidden = aiOn;
+    document.querySelector('label[for="p2"]').textContent = aiOn ? "Adversário" : "Jogador 2";
+  }
+  function aiLayout() {
+    state.aiHints = []; state.aiWrong = []; state.busy = false;
+    if (!state.ai) return;
+    var aiNar = narratorIdx() === 1, aiGue = guesserIdx() === 1;
+    $("secret").hidden = aiNar;
+    $("guess-form").hidden = aiGue;
+    $("ai-hint-row").hidden = !aiGue;
+    $("ai-hint").value = "";
+    $("give").textContent = aiNar ? "Pedir dica à IA" : "Enviar dica";
+  }
+  function aiGive() {
+    if (state.over || state.busy || state.used >= state.mode.hints) return;
+    var item = current(), rt = state.rt, note = $("hint-note");
+    state.busy = true;
+    $("give").disabled = true;
+    note.textContent = "A IA está pensando…";
+    if (narratorIdx() === 1) {
+      aiHint(item).then(function (w) {
+        if (state.rt !== rt || state.over) return;
+        state.busy = false;
+        if (!w) { note.textContent = "A IA não tem mais dicas. Pode chutar."; return; }
+        state.used++; state.aiHints.push(w); renderHints();
+        note.textContent = "Dicas da IA: " + state.aiHints.join(" · ");
+        if (state.used >= state.mode.hints) setFeedback("Acabaram as dicas. Este é o último chute.", "info");
+      });
+      return;
+    }
+    var w = oneWord($("ai-hint").value);
+    if (!w) { state.busy = false; $("give").disabled = false; note.textContent = "Escreva uma palavra só."; return; }
+    state.used++; state.aiHints.push(w); renderHints();
+    $("give").disabled = true;
+    $("ai-hint").value = "";
+    aiGuess(item).then(function (g) {
+      if (state.rt !== rt || state.over) return;
+      state.busy = false;
+      if (g === null) {
+        state.used--; state.aiHints.pop(); renderHints();
+        note.textContent = "A IA não conseguiu responder agora. Tente enviar a dica de novo.";
+        return;
+      }
+      if (matches(g, item)) {
+        var pts = worth();
+        state.scores[guesserIdx()] += pts;
+        finishRound(true, pts);
+        return;
+      }
+      state.aiWrong.push(g);
+      if (state.used >= state.mode.hints) { finishRound(false, 0); return; }
+      renderHints();
+      note.textContent = "Dicas: " + state.aiHints.join(" · ") + ". A IA chutou \"" + g + "\" e errou. Dê outra dica.";
+    });
+  }
+  $("ai-hint").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); $("give").click(); } });
+  $("ai-toggle").addEventListener("click", function () { aiOn = !aiOn; paintAi(); resetDraw(); });
+  $("ai-toggle").hidden = false;
+
+  /* Dar dica */
+  $("give").addEventListener("click", function () {
+    if (online.active) {
+      onlineAct({ t: "hint" });
+      return;
+    }
+    if (state.ai) { aiGive(); return; }
+    if (state.over || state.used >= state.mode.hints) return;
+    state.used++;
+    renderHints();
+    if (state.used >= state.mode.hints) {
+      setFeedback("Acabaram as dicas. Este é o último chute.", "info");
+    } else {
+      setFeedback("", "info");
+    }
+  });
+
+  /* Chutar */
+  $("guess-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (state.over) return;
+    var val = $("guess").value;
+    if (!val.trim()) return;
+    if (online.active) {
+      onlineAct({ t: "guess", text: val });
+      $("guess").value = "";
+      return;
+    }
+    var item = current();
+    if (matches(val, item)) {
+      var pts = worth();
+      state.scores[guesserIdx()] += pts;
+      finishRound(true, pts);
+    } else {
+      var f = $("guess");
+      f.classList.remove("shake");
+      void f.offsetWidth;
+      f.classList.add("shake");
+      f.select();
+      if (state.used >= state.mode.hints) {
+        finishRound(false, 0);
+      } else {
+        setFeedback("Não é essa. Narrador, dê mais uma dica.", "bad");
+      }
+    }
+  });
+
+  $("skip").addEventListener("click", function () {
+    if (state.over) return;
+    if (online.active) { onlineAct({ t: "skip" }); return; }
+    finishRound(false, 0);
+  });
+  $("round-quit").addEventListener("click", function () {
+    if (online.active) { leaveRoom(); show("s-home"); return; }
+    state.over = true;
+    show("s-home");
+  });
+
+  /* ---------- Resultado ---------- */
+  function finishRound(won, pts) {
+    state.over = true;
+    showResult(won, pts, current());
+  }
+  function showResult(won, pts, item) {
+    $("res-card").className = "panel result " + (won ? "win" : "lose");
+    $("res-mode").textContent = state.mode.name;
+    $("res-count").textContent = "Personagem " + (state.idx + 1) + " de " + state.queue.length;
+    $("res-verdict").textContent = won ? "Acertou!" : "Não deu";
+    var rk = "r" + (online.G ? online.G.draw + "." : "") + state.idx + "|" + state.scores.join() + "|" + won;
+    sfx(won ? "ok" : "bad", rk);
+    $("res-extra").textContent = recordRound(won, rk);
+    $("res-answer").textContent = item.n;
+    setPhoto("res-img", item);
+    $("res-cat").textContent = item.c;
+    $("res-gain").textContent = won
+      ? state.names[guesserIdx()] + " ganhou " + pts + (pts === 1 ? " ponto" : " pontos") + " com " + state.used + (state.used === 1 ? " dica" : " dicas")
+      : "Ninguém pontuou neste personagem";
+    renderScores($("res-scores"), false);
+    var last = state.idx + 1 >= state.queue.length;
+    $("next").textContent = last ? "Ver placar final" : "Próximo personagem";
+    ensure("s-result");
+  }
+
+  $("next").addEventListener("click", function () {
+    if (online.active) { onlineAct({ t: "next" }); return; }
+    if (state.idx + 1 >= state.queue.length) {
+      var sa = state.scores[0], sb = state.scores[1];
+      if (sa !== sb) state.wins[sa > sb ? 0 : 1]++;
+      renderEnd();
+      return;
+    }
+    state.idx++;
+    renderRound();
+  });
+
+  /* ---------- Fim ---------- */
+  function renderEnd() {
+    var a = state.scores[0], b = state.scores[1];
+    if (a === b) {
+      $("end-title").textContent = "Empate!";
+      $("end-sub").textContent = "Os dois terminaram com " + a + (a === 1 ? " ponto." : " pontos.");
+    } else {
+      var w = a > b ? 0 : 1;
+      $("end-title").textContent = state.names[w] + " venceu!";
+      $("end-sub").textContent = "Modo " + state.mode.name + ", " + state.queue.length + " personagens jogados.";
+    }
+    var box = $("end-rank");
+    clear(box);
+    var order = a >= b ? [0, 1] : [1, 0];
+    order.forEach(function (i) {
+      var s = el("div", "score" + (a !== b && state.scores[i] === Math.max(a, b) ? " on" : ""));
+      var who = el("div", "who");
+      nameInto(who, state.names[i]);
+      s.appendChild(who);
+      s.appendChild(el("div", "pts", String(state.scores[i])));
+      box.appendChild(s);
+    });
+    var wn = state.wins || [0, 0];
+    $("end-tally").textContent = wn[0] + wn[1] > 0 ? "Vitórias na sessão: " + state.names[0] + " " + wn[0] + " x " + wn[1] + " " + state.names[1] : "";
+    $("end-home").textContent = online.active ? "Sair da sala" : "Escolher outro modo";
+    var ek = "end" + (online.G ? online.G.draw : 0) + "|" + state.scores.join();
+    sfx(a === b ? "end" : "win", ek);
+    var ratio = (a + b) / (state.queue.length * (state.mode.hints + 1));
+    $("end-rank-title").textContent = "Título da dupla: " + recordGame(ek, ratio);
+    ensure("s-end");
+  }
+  $("again").addEventListener("click", function () {
+    if (online.active) { onlineAct({ t: "again" }); return; }
+    var m = MODES[state.key];
+    $("setup-badge").textContent = m.name;
+    $("setup-title").textContent = "Modo " + m.name;
+    runDraw();
+    startGameAfterDraw();
+  });
+  function startGameAfterDraw() {
+    clearInterval(drawTimer);
+    startGame(state.key, state.drawn);
+  }
+  $("end-home").addEventListener("click", function () {
+    if (online.active) leaveRoom();
+    show("s-home");
+  });
+
+  /* ---------- Online ----------
+     O criador da sala (host) guarda o estado do jogo e o envia a todos.
+     O outro jogador (guest) manda ações (dica, chute, pular, próximo) ao host. */
+  var LEVELS = ["easy", "medium", "hard"];
+  var CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  function genCode() {
+    var s = "";
+    for (var i = 0; i < 4; i++) s += CODE_CHARS.charAt(Math.floor(Math.random() * CODE_CHARS.length));
+    return s;
+  }
+  function refItem(r) { return CATALOG[r[0]][LEVELS[r[1]]][r[2]]; }
+  function poolRefs(cfg) {
+    var out = [], lvl = LEVELS.indexOf(cfg.key);
+    CATALOG.forEach(function (an, ai) {
+      if (cfg.animes.indexOf(an.id) >= 0) an[cfg.key].forEach(function (_, i) { out.push([ai, lvl, i]); });
+    });
+    return out;
+  }
+  function cleanName(x) { return typeof x === "string" ? x.trim().slice(0, 14) : ""; }
+  function animesLabel(ids) {
+    if (ids.length >= CATALOG.length) return "todos os animes";
+    return CATALOG.filter(function (a) { return ids.indexOf(a.id) >= 0; }).map(function (a) { return a.name; }).join(", ");
+  }
+
+  /* Animes escolhidos por quem cria a sala */
+  var onAnimes = CATALOG.map(function (a) { return a.id; });
+  function renderOnPicker() {
+    var box = $("on-picker");
+    clear(box);
+    var allOn = onAnimes.length === CATALOG.length;
+    var all = el("button", "pick" + (allOn ? " on" : ""), "Todos");
+    all.type = "button";
+    all.setAttribute("aria-pressed", allOn ? "true" : "false");
+    all.addEventListener("click", function () {
+      onAnimes = CATALOG.map(function (a) { return a.id; });
+      renderOnPicker();
+    });
+    box.appendChild(all);
+    CATALOG.forEach(function (a) {
+      var on = onAnimes.indexOf(a.id) >= 0;
+      var b = el("button", "pick" + (on && !allOn ? " on" : ""), a.name);
+      b.type = "button";
+      b.setAttribute("aria-pressed", on && !allOn ? "true" : "false");
+      b.addEventListener("click", function () {
+        if (allOn) { onAnimes = [a.id]; }
+        else if (on) { if (onAnimes.length > 1) onAnimes = onAnimes.filter(function (x) { return x !== a.id; }); }
+        else { onAnimes = onAnimes.concat([a.id]); }
+        renderOnPicker();
+      });
+      box.appendChild(b);
+    });
+    var total = 0;
+    CATALOG.forEach(function (a) { if (onAnimes.indexOf(a.id) >= 0) total += a.easy.length + a.medium.length + a.hard.length; });
+    $("on-picker-note").textContent = allOn
+      ? "Todos os animes entram (" + total + " palavras). Toque em um para escolher só alguns."
+      : onAnimes.length + " de " + CATALOG.length + " selecionados (" + total + " palavras). Toque para marcar ou desmarcar.";
+  }
+  renderOnPicker();
+  function reduceMotion() { return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
+  function myPeer() {
+    var ps = online.rm ? online.rm.peers() : [];
+    for (var i = 0; i < ps.length; i++) if (ps[i].isMe && ps[i].sameTab) return ps[i].peer;
+    return null;
+  }
+
+  /* Estado do host */
+  function newG() {
+    return { v: 0, phase: "lobby", cfg: { animes: onAnimes.slice(), key: "easy" }, names: [online.name, null], av: [online.av, 0], wins: [0, 0], first: 0, draw: 0, order: [], idx: 0, used: 0, scores: [0, 0], guess: "", gn: 0, vn: 0, res: null, gp: null };
+  }
+  function drawRoles(G) { G.first = Math.random() < 0.5 ? 0 : 1; G.draw++; }
+  function beginGame(G) {
+    var m = MODES[G.cfg.key];
+    G.order = shuffle(poolRefs(G.cfg)).slice(0, m.chars);
+    G.idx = 0; G.used = 0; G.scores = [0, 0]; G.guess = ""; G.gn = 0; G.vn = 0; G.res = null; G.phase = "round";
+  }
+  function hostPublish() {
+    var G = online.G;
+    if (!online.rm || !G) return;
+    G.v++;
+    G.gp = online.guestPeer;
+    online.rm.emit("g", { t: "state", s: G }).catch(noop);
+    applyState(G);
+  }
+  function heartbeat() {
+    if (online.rm && online.G && online.G.names[1]) online.rm.emit("g", { t: "state", s: online.G }).catch(noop);
+  }
+  function hostApply(side, a) {
+    var G = online.G;
+    if (!G || !a || typeof a.t !== "string") return;
+    var m = MODES[G.cfg.key];
+    var narr = (G.first + G.idx) % 2, gues = 1 - narr;
+    switch (a.t) {
+      case "cfg":
+        if (side !== 0 || G.phase !== "lobby") return;
+        if (typeof a.key === "string" && MODES[a.key]) G.cfg.key = a.key;
+        break;
+      case "redraw":
+        if (side !== 0 || G.phase !== "lobby" || !G.names[1]) return;
+        drawRoles(G);
+        break;
+      case "start":
+        if (side !== 0 || G.phase !== "lobby" || !G.names[1]) return;
+        beginGame(G);
+        break;
+      case "hint":
+        if (G.phase !== "round" || side !== narr || G.used >= m.hints) return;
+        G.used++;
+        break;
+      case "guess":
+        if (G.phase !== "round" || side !== gues) return;
+        var txt = String(a.text || "").trim().slice(0, 40);
+        if (!txt) return;
+        G.guess = txt;
+        G.gn++;
+        break;
+      case "verdict":
+        if (G.phase !== "round" || side !== narr || !G.guess) return;
+        G.guess = "";
+        if (a.ok === true) {
+          var pts = Math.max(1, m.hints - G.used + 1);
+          G.scores[gues] += pts;
+          G.phase = "result";
+          G.res = { won: true, pts: pts };
+        } else if (G.used >= m.hints) {
+          G.phase = "result";
+          G.res = { won: false, pts: 0 };
+        } else {
+          G.vn++;
+        }
+        break;
+      case "skip":
+        if (G.phase !== "round" || side !== narr) return;
+        G.phase = "result";
+        G.res = { won: false, pts: 0 };
+        break;
+      case "next":
+        if (G.phase !== "result") return;
+        if (G.idx + 1 >= G.order.length) {
+          G.phase = "end";
+          if (!G.wins) G.wins = [0, 0];
+          if (G.scores[0] !== G.scores[1]) G.wins[G.scores[0] > G.scores[1] ? 0 : 1]++;
+        } else {
+          G.idx++; G.used = 0; G.guess = ""; G.gn = 0; G.vn = 0; G.res = null; G.phase = "round";
+        }
+        break;
+      case "again":
+        if (G.phase !== "end") return;
+        drawRoles(G);
+        beginGame(G);
+        break;
+      case "hello":
+        break;
+      default:
+        return;
+    }
+    hostPublish();
+  }
+  function onlineAct(a) {
+    if (!online.active || !online.rm) return;
+    if (online.me === "host") hostApply(0, a);
+    else online.rm.emit("g", { t: "act", a: a }).catch(noop);
+  }
+
+  /* Validação do estado recebido */
+  function validState(s) {
+    try {
+      if (!s || typeof s !== "object") return false;
+      if (["lobby", "round", "result", "end"].indexOf(s.phase) < 0) return false;
+      if (!s.cfg || !MODES[s.cfg.key]) return false;
+      if (!Array.isArray(s.cfg.animes) || !s.cfg.animes.length) return false;
+      if (!Array.isArray(s.names) || typeof s.names[0] !== "string") return false;
+      if (!Array.isArray(s.scores) || s.scores.length !== 2) return false;
+      if (!Array.isArray(s.order) || typeof s.guess !== "string") return false;
+      if (s.first !== 0 && s.first !== 1) return false;
+      for (var i = 0; i < s.order.length; i++) if (!refItem(s.order[i])) return false;
+      if (s.phase !== "lobby" && !refItem(s.order[s.idx])) return false;
+      if (s.phase === "result" && (!s.res || typeof s.res !== "object")) return false;
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* Telas */
+  function applyState(s) {
+    var meIdx = online.me === "host" ? 0 : 1;
+    online.G = s;
+    state.key = s.cfg.key;
+    state.mode = MODES[s.cfg.key];
+    state.names = [s.names[0], s.names[1] || "…"];
+    state.wins = Array.isArray(s.wins) ? s.wins.slice() : [0, 0];
+    if (Array.isArray(s.av)) { AVMAP[s.names[0]] = avIdx(s.av[0]); if (s.names[1]) AVMAP[s.names[1]] = avIdx(s.av[1]); }
+    state.scores = s.scores.slice();
+    state.first = s.first;
+    state.idx = s.idx;
+    state.used = s.used;
+    state.queue = s.order.map(refItem);
+    online.got = true;
+    if (s.phase === "lobby") {
+      state.over = true;
+      renderLobby(s);
+    } else if (s.phase === "round") {
+      renderOnlineRound(s, meIdx);
+    } else if (s.phase === "result") {
+      state.over = true;
+      showResult(!!s.res.won, s.res.pts | 0, refItem(s.order[s.idx]));
+    } else {
+      state.over = true;
+      renderEnd();
+    }
+    online.lastPhase = s.phase;
+    online.lastIdx = s.idx;
+  }
+
+  function setNote(text, kind) {
+    var n = $("hint-note");
+    n.textContent = text;
+    n.className = "feedback " + (kind || "info");
+  }
+  function shakeGuess() {
+    var f = $("guess");
+    f.classList.remove("shake");
+    void f.offsetWidth;
+    f.classList.add("shake");
+    f.select();
+  }
+  /* Quem dá as dicas vê a palavra, conta as dicas e diz se o chute está certo.
+     Quem adivinha só vê o campo para escrever o personagem. */
+  function renderOnlineRound(s, meIdx) {
+    var item = refItem(s.order[s.idx]);
+    var narr = (s.first + s.idx) % 2;
+    var isNarr = narr === meIdx;
+    var fresh = online.lastPhase !== "round" || online.lastIdx !== s.idx;
+    var max = state.mode.hints;
+    var other = s.names[1 - narr];
+    state.over = false;
+    $("r-mode").textContent = state.mode.name;
+    $("r-count").textContent = "Personagem " + (s.idx + 1) + " de " + s.order.length;
+    $("secret").hidden = !isNarr;
+    $("hint-panel").hidden = !isNarr;
+    $("verdict-box").hidden = !isNarr;
+    $("skip").hidden = !isNarr;
+    $("r-scores").hidden = !isNarr;
+    $("guess-form").hidden = isNarr;
+    if (isNarr) {
+      renderScores($("r-scores"), true);
+      $("r-roles").textContent = "Você dá as dicas em voz alta. Toque em \"Dei uma dica\" a cada dica e diga se o chute de " + other + " está certo.";
+      $("sec-cat").textContent = item.c;
+      $("sec-word").textContent = item.n;
+      setPhoto("sec-img", item);
+      var tips = $("sec-tips");
+      clear(tips);
+      tips.appendChild(el("li", null, "Palavras para usar: " + item.t.join(" · ")));
+      $("give").hidden = false;
+      $("give").textContent = "Dei uma dica";
+      renderHints();
+      var pending = !!s.guess;
+      $("vd-who").textContent = other;
+      $("vd-guess").textContent = pending ? s.guess : "Aguardando o chute…";
+      $("vd-auto").textContent = pending ? (matches(s.guess, item) ? "O site acha que está certo. Você decide." : "O site acha que está errado. Você decide.") : "";
+      $("vd-yes").disabled = !pending;
+      $("vd-no").disabled = !pending;
+      setNote(s.used >= max ? "Acabaram as dicas. Se o próximo chute estiver errado, a rodada termina." : "", "info");
+    } else {
+      $("r-roles").textContent = "Escreva o personagem que você acha que é.";
+      $("guess-label").textContent = "Quem é o personagem?";
+      if (fresh) {
+        $("guess").value = "";
+        setFeedback("", "info");
+      } else if (s.vn !== online.lastVn) {
+        setFeedback("Errou. Tente de novo.", "bad");
+        shakeGuess();
+      } else if (s.gn !== online.lastGn && s.guess) {
+        setFeedback("Chute enviado: " + s.guess + ". Aguardando " + s.names[narr] + "…", "info");
+      }
+    }
+    online.lastVn = s.vn;
+    online.lastGn = s.gn;
+    online.lastUsed = s.used;
+    ensure("s-round");
+  }
+
+  /* Sala (lobby) */
+  function putLobby(give, guess, rolling) {
+    nameInto($("lb-nm-give"), give);
+    nameInto($("lb-nm-guess"), guess);
+    $("lb-card-give").classList.toggle("rolling", rolling);
+    $("lb-card-guess").classList.toggle("rolling", rolling);
+  }
+  function setLobbyButtons() {
+    $("lb-start").disabled = online.animating;
+    $("lb-redraw").disabled = online.animating;
+  }
+  function animateLobbyDraw(s) {
+    clearInterval(online.drawTimer);
+    online.lastDraw = s.draw;
+    var give = s.names[s.first], guess = s.names[1 - s.first];
+    if (reduceMotion()) {
+      online.animating = false;
+      putLobby(give, guess, false);
+      setLobbyButtons();
+      return;
+    }
+    online.animating = true;
+    setLobbyButtons();
+    var a = s.names[0], b = s.names[1], ticks = 0;
+    online.drawTimer = setInterval(function () {
+      ticks++;
+      if (ticks >= 12) {
+        clearInterval(online.drawTimer);
+        online.animating = false;
+        putLobby(give, guess, false);
+        setLobbyButtons();
+      } else {
+        putLobby(ticks % 2 ? a : b, ticks % 2 ? b : a, true);
+      }
+    }, 90);
+  }
+  function renderLobbyCfg(s) {
+    var md = $("lb-modes");
+    clear(md);
+    ["easy", "medium", "hard"].forEach(function (k) {
+      var on = s.cfg.key === k;
+      var b = el("button", "pick" + (on ? " on" : ""), MODES[k].name);
+      b.type = "button";
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.addEventListener("click", function () { onlineAct({ t: "cfg", key: k }); });
+      md.appendChild(b);
+    });
+  }
+  function renderLobby(s) {
+    var isHost = online.me === "host";
+    var guestHere = !!s.names[1];
+    var m = MODES[s.cfg.key];
+    $("lb-code").textContent = online.code;
+    $("lb-status").textContent = isHost
+      ? (guestHere ? s.names[1] + " entrou na sala." : "Aguardando o amigo entrar com o código.")
+      : "Você entrou na sala de " + s.names[0] + ".";
+    $("lb-cfg").hidden = !isHost;
+    $("lb-cfg-text").hidden = false;
+    $("lb-cfg-text").textContent = isHost
+      ? "Animes da sala: " + animesLabel(s.cfg.animes) + "."
+      : "Animes: " + animesLabel(s.cfg.animes) + " · Modo " + m.name + " (" + m.chars + " personagens, até " + m.hints + " dicas)";
+    if (isHost) renderLobbyCfg(s);
+    $("lb-draw").hidden = !guestHere;
+    if (guestHere) {
+      if (s.draw !== online.lastDraw) animateLobbyDraw(s);
+      else if (!online.animating) putLobby(s.names[s.first], s.names[1 - s.first], false);
+    } else {
+      clearInterval(online.drawTimer);
+      online.animating = false;
+      online.lastDraw = -1;
+    }
+    $("lb-redraw").hidden = !(isHost && guestHere);
+    $("lb-start").hidden = !(isHost && guestHere);
+    $("lb-wait").hidden = isHost || !guestHere;
+    $("lb-wait").textContent = "Aguardando " + s.names[0] + " começar.";
+    setLobbyButtons();
+    ensure("s-lobby");
+  }
+  function renderLobbyWaiting() {
+    $("lb-code").textContent = online.code;
+    $("lb-status").textContent = "Entrando na sala…";
+    $("lb-cfg").hidden = true;
+    $("lb-cfg-text").hidden = true;
+    $("lb-draw").hidden = true;
+    $("lb-redraw").hidden = true;
+    $("lb-start").hidden = true;
+    $("lb-wait").hidden = true;
+    show("s-lobby");
+  }
+
+  /* Entrar e sair */
+  function leaveRoom() {
+    clearInterval(online.hb); clearInterval(online.hello); clearInterval(online.drawTimer);
+    clearTimeout(online.findT); clearTimeout(online.guestGone); clearTimeout(online.hostGone);
+    online.unsubs.forEach(function (f) { try { f(); } catch (e) { /* ignora */ } });
+    online.unsubs = [];
+    if (online.rm) online.rm.leave().catch(noop);
+    online.rm = null;
+    online.active = false;
+    online.G = null;
+    online.guestPeer = null;
+    online.animating = false;
+    state.over = true;
+    state.first = 0;
+    resetLayout();
+  }
+  function failJoin(msg) {
+    leaveRoom();
+    $("on-fb").textContent = msg;
+    show("s-online");
+  }
+  /* ---------- Sala por PeerJS (fora do claude.ai) ----------
+     Mesma interface da sala do claude.ai (join/emit/on/presence/peers/onPeers/leave), em cima de conexões diretas
+     entre os aparelhos (WebRTC). Quem cria a sala é o "anfitrião": os convidados conectam nele e ele repassa tudo. */
+  var peerApi = {
+    join: function (name, opts) {
+      var role = opts && opts.role, hostId = "dicadojo-" + name;
+      return new Promise(function (resolve, reject) {
+        var myId = null, peer = null, conns = {}, mine = {}, remote = {}, handlers = {}, peerFns = [], closed = false, settled = false;
+        var timer = setTimeout(function () { fail("timeout"); }, 15000);
+        function fail(code) {
+          if (settled) return;
+          settled = true; clearTimeout(timer);
+          try { if (peer) peer.destroy(); } catch (e) { /* já fechado */ }
+          var err = new Error(code); err.code = code; reject(err);
+        }
+        function list() {
+          var out = [{ peer: myId, by: null, isMe: true, sameTab: true, kind: "viewer", guest: false, presence: mine, updatedAt: Date.now() }];
+          Object.keys(remote).forEach(function (id) { out.push({ peer: id, by: null, isMe: false, sameTab: false, kind: "viewer", guest: false, presence: remote[id], updatedAt: Date.now() }); });
+          return out;
+        }
+        function notify(joined, left) {
+          var ps = list();
+          var j = (joined || []).map(function (id) { return ps.filter(function (p) { return p.peer === id; })[0]; }).filter(Boolean);
+          peerFns.slice().forEach(function (fn) { try { fn({ peers: ps, joined: j, left: left || [], updated: [] }); } catch (e) { /* ouvinte com erro */ } });
+        }
+        function deliver(topic, data, from) {
+          (handlers[topic] || []).slice().forEach(function (fn) {
+            try { fn({ peer: from, by: null, isMe: from === myId, sameTab: from === myId, kind: "viewer", guest: false, topic: topic, data: data }); } catch (e) { /* ouvinte com erro */ }
+          });
+        }
+        function sendTo(c, msg) { try { if (c && c.open) c.send(msg); } catch (e) { /* conexão caiu */ } }
+        function sendAll(msg, except) { Object.keys(conns).forEach(function (id) { if (id !== except) sendTo(conns[id], msg); }); }
+        function onData(c, m) {
+          if (!m || typeof m !== "object") return;
+          var from = c.peer;
+          if (m.k === "pres") {
+            var had = !!remote[from];
+            remote[from] = m.p || {};
+            if (role === "host") sendAll({ k: "pres", id: from, p: remote[from] }, from);
+            notify(had ? [] : [from]);
+          } else if (m.k === "pres2") {
+            var had2 = !!remote[m.id];
+            remote[m.id] = m.p || {};
+            notify(had2 ? [] : [m.id]);
+          } else if (m.k === "left") {
+            if (remote[m.id]) { delete remote[m.id]; notify([], [m.id]); }
+          } else if (m.k === "emit") {
+            var origin = role === "host" ? from : (m.id || from);
+            deliver(m.topic, m.data, origin);
+            if (role === "host") sendAll({ k: "emit", id: from, topic: m.topic, data: m.data }, from);
+          }
+        }
+        function wire(c) {
+          c.on("data", function (m) { onData(c, m); });
+          c.on("close", function () { dropped(c); });
+          c.on("error", function () { dropped(c); });
+        }
+        function dropped(c) {
+          var id = c.peer;
+          if (conns[id] !== c) return;
+          delete conns[id];
+          if (role === "host") {
+            if (remote[id]) { delete remote[id]; sendAll({ k: "left", id: id }); notify([], [id]); }
+          } else {
+            var gone = Object.keys(remote); remote = {};
+            if (gone.length) notify([], gone);
+          }
+        }
+        var rm = {
+          name: name,
+          emit: function (topic, data) {
+            deliver(topic, data, myId);
+            var msg = { k: "emit", id: myId, topic: topic, data: data };
+            if (role === "host") sendAll(msg); else sendTo(conns[hostId], msg);
+            return Promise.resolve();
+          },
+          on: function (topic, fn) {
+            (handlers[topic] = handlers[topic] || []).push(fn);
+            return function () { handlers[topic] = (handlers[topic] || []).filter(function (x) { return x !== fn; }); };
+          },
+          presence: function (patch) {
+            for (var k in patch) if (Object.prototype.hasOwnProperty.call(patch, k)) mine[k] = patch[k];
+            var msg = { k: "pres", id: myId, p: mine };
+            if (role === "host") sendAll(msg); else sendTo(conns[hostId], msg);
+            notify([]);
+            return Promise.resolve();
+          },
+          peers: list,
+          onPeers: function (fn) {
+            peerFns.push(fn);
+            Promise.resolve().then(function () { notify(list().map(function (p) { return p.peer; })); });
+            return function () { peerFns = peerFns.filter(function (x) { return x !== fn; }); };
+          },
+          connected: function () { return !closed; },
+          onConnection: function () { return function () {}; },
+          leave: function () {
+            if (closed) return Promise.resolve();
+            closed = true;
+            try { sendAll({ k: "left", id: myId }); } catch (e) { /* ok */ }
+            try { Object.keys(conns).forEach(function (id) { conns[id].close(); }); } catch (e) { /* ok */ }
+            try { peer.destroy(); } catch (e) { /* ok */ }
+            return Promise.resolve();
+          }
+        };
+        window.addEventListener("pagehide", function () { rm.leave(); });
+        function ready() { if (settled) return; settled = true; clearTimeout(timer); resolve(rm); }
+        try {
+          peer = role === "host" ? new window.Peer(hostId) : new window.Peer();
+        } catch (e) { fail("peer_failed"); return; }
+        peer.on("error", function (err) {
+          var t = err && err.type;
+          if (!settled) { fail(t === "peer-unavailable" ? "no_room" : t === "unavailable-id" ? "id_taken" : "peer_failed"); }
+        });
+        peer.on("open", function (id) {
+          myId = id;
+          if (role === "host") { ready(); return; }
+          var c = peer.connect(hostId, { reliable: true, serialization: "json" });
+          c.on("open", function () { conns[hostId] = c; wire(c); ready(); });
+        });
+        peer.on("connection", function (c) {
+          if (role !== "host") { try { c.close(); } catch (e) { /* ok */ } return; }
+          c.on("open", function () {
+            conns[c.peer] = c;
+            wire(c);
+            var known = [{ id: myId, p: mine }];
+            Object.keys(remote).forEach(function (id) { known.push({ id: id, p: remote[id] }); });
+            known.forEach(function (x) { sendTo(c, { k: "pres2", id: x.id, p: x.p }); });
+          });
+        });
+      });
+    }
+  };
+
+  async function enterRoom(role, code) {
+    if (online.active) return;
+    var name = cleanName($("on-name").value) || (role === "host" ? "Jogador 1" : "Jogador 2");
+    $("on-fb").textContent = "";
+    var api = null;
+    try { api = (window.claude && window.claude.use) ? await window.claude.use("room") : null; } catch (e) { api = null; }
+    var viaPeer = false;
+    if (!api && window.Peer) { api = peerApi; viaPeer = true; }
+    if (!api) {
+      $("on-fb").textContent = window.claude ? "O modo online não está disponível aqui. Abra o link com a sua conta e peça ao dono para compartilhar com permissão de colaborador." : "O modo online precisa de internet. Confira a conexão e recarregue a página.";
+      return;
+    }
+    var rm;
+    try { rm = viaPeer ? await api.join("dojo-" + code.toLowerCase(), { role: role }) : await api.join("dojo-" + code.toLowerCase()); }
+    catch (e) {
+      $("on-fb").textContent = e && e.code === "no_room" ? "Sala não encontrada. Confira o código e tente de novo." : "Não foi possível abrir a sala agora. Tente de novo.";
+      return;
+    }
+    if (online.active) { rm.leave().catch(noop); return; }
+    online.active = true;
+    online.rm = rm;
+    online.me = role;
+    online.code = code;
+    online.name = name;
+    online.av = onAvSel;
+    online.G = null;
+    online.got = false;
+    online.hostSeen = false;
+    online.guestPeer = null;
+    online.lastV = -1; online.lastPhase = null; online.lastIdx = -1; online.lastVn = 0; online.lastGn = 0; online.lastUsed = -1; online.lastDraw = -1;
+    online.animating = false;
+    online.unsubs = [rm.on("g", onRoomMsg, noop), rm.onPeers(onPeersChange, noop)];
+    rm.presence({ role: role, name: name, av: onAvSel }).catch(noop);
+    if (role === "host") {
+      online.G = newG();
+      online.hb = setInterval(heartbeat, 4000);
+      hostPublish();
+    } else {
+      renderLobbyWaiting();
+      online.findT = setTimeout(function () {
+        if (!online.hostSeen) failJoin("Sala não encontrada. Confira o código e tente de novo.");
+      }, 7000);
+      online.hello = setInterval(function () {
+        if (online.got) { clearInterval(online.hello); return; }
+        rm.emit("g", { t: "act", a: { t: "hello" } }).catch(noop);
+      }, 2000);
+    }
+  }
+
+  /* Mensagens e presença */
+  function onRoomMsg(msg) {
+    if (!online.active || msg.isMe) return;
+    var d = msg.data;
+    if (!d || typeof d !== "object") return;
+    if (online.me === "host") {
+      if (d.t === "act" && d.a && msg.peer === online.guestPeer) hostApply(1, d.a);
+    } else if (d.t === "state") {
+      var host = online.rm.peers().filter(function (p) { return !p.isMe && p.presence && p.presence.role === "host"; })[0];
+      if (host && host.peer !== msg.peer) return;
+      var s = d.s;
+      if (!validState(s) || s.v === online.lastV) return;
+      var mine = myPeer();
+      if (s.gp && mine && s.gp !== mine) { failJoin("Esta sala já tem dois jogadores."); return; }
+      online.lastV = s.v;
+      clearInterval(online.hello);
+      applyState(s);
+    }
+  }
+  function findGuest(peers) {
+    return peers.filter(function (p) { return !p.isMe && p.kind === "viewer" && p.presence && p.presence.role === "guest"; })[0];
+  }
+  function adoptGuest(p) {
+    var G = online.G;
+    online.guestPeer = p.peer;
+    var nm = cleanName(p.presence.name) || "Jogador 2";
+    if (norm(nm) === norm(G.names[0])) nm = nm + " (2)";
+    G.names[1] = nm;
+    G.av = [G.av ? G.av[0] : 0, avIdx(p.presence.av)];
+    G.phase = "lobby";
+    drawRoles(G);
+    hostPublish();
+  }
+  function guestLeft() {
+    online.guestGone = null;
+    var G = online.G;
+    if (!G || !online.active) return;
+    online.guestPeer = null;
+    G.names[1] = null;
+    G.phase = "lobby";
+    G.order = []; G.idx = 0; G.used = 0; G.scores = [0, 0]; G.guess = ""; G.gn = 0; G.vn = 0; G.res = null; G.wins = [0, 0];
+    hostPublish();
+    var cand = findGuest(online.rm.peers());
+    if (cand) adoptGuest(cand);
+  }
+  function onPeersChange(ch) {
+    if (!online.active || !online.rm) return;
+    var peers = online.rm.peers();
+    if (online.me === "host") {
+      var G = online.G;
+      if (!G) return;
+      var cur = online.guestPeer ? peers.filter(function (p) { return p.peer === online.guestPeer; })[0] : null;
+      if (cur) {
+        clearTimeout(online.guestGone);
+        online.guestGone = null;
+        var nm = cleanName(cur.presence && cur.presence.name);
+        if (nm && G.names[1] && nm !== G.names[1] && norm(nm) !== norm(G.names[0])) { G.names[1] = nm; hostPublish(); }
+        else if (ch.joined.length) heartbeat();
+        return;
+      }
+      if (online.guestPeer) {
+        if (!online.guestGone) online.guestGone = setTimeout(guestLeft, 6000);
+        return;
+      }
+      var cand = findGuest(peers);
+      if (cand) adoptGuest(cand);
+    } else {
+      var host = peers.filter(function (p) { return !p.isMe && p.presence && p.presence.role === "host"; })[0];
+      if (host) {
+        online.hostSeen = true;
+        clearTimeout(online.findT);
+        clearTimeout(online.hostGone);
+        online.hostGone = null;
+      } else if (online.hostSeen && !online.hostGone) {
+        online.hostGone = setTimeout(function () { failJoin("O criador saiu da sala."); }, 8000);
+      }
+    }
+  }
+
+  /* Botões do online */
+  $("go-online").addEventListener("click", function () {
+    $("on-fb").textContent = "";
+    show("s-online");
+  });
+  $("on-back").addEventListener("click", function () { show("s-home"); });
+  $("on-create").addEventListener("click", function () { enterRoom("host", genCode()); });
+  function joinFromInput() {
+    var code = $("on-code").value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (code.length !== 4) { $("on-fb").textContent = "Digite o código de 4 caracteres."; return; }
+    enterRoom("guest", code);
+  }
+  $("on-join").addEventListener("click", joinFromInput);
+  $("on-code").addEventListener("input", function () {
+    this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  });
+  $("on-code").addEventListener("keydown", function (e) { if (e.key === "Enter") joinFromInput(); });
+  $("lb-leave").addEventListener("click", function () { leaveRoom(); show("s-home"); });
+  $("lb-copy").addEventListener("click", function () {
+    var b = this;
+    var done = function () { b.textContent = "Código copiado"; setTimeout(function () { b.textContent = "Copiar código"; }, 1600); };
+    try { navigator.clipboard.writeText(online.code).then(done, noop); } catch (e) { /* sem acesso à área de transferência */ }
+  });
+  $("vd-yes").addEventListener("click", function () { onlineAct({ t: "verdict", ok: true }); });
+  $("vd-no").addEventListener("click", function () { onlineAct({ t: "verdict", ok: false }); });
+  $("lb-start").addEventListener("click", function () { onlineAct({ t: "start" }); });
+  $("lb-redraw").addEventListener("click", function () { onlineAct({ t: "redraw" }); });
+})();
+</script>
+
+</body>
+</html>
